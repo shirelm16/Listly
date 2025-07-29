@@ -16,8 +16,6 @@ namespace Listly.ViewModel
 {
     public partial class AddShoppingItemPopupViewModel : BaseViewModel
     {
-        private readonly ShoppingItemStore _itemStore;
-
         public Guid ShoppingListId { get; }
 
         [ObservableProperty]
@@ -26,9 +24,8 @@ namespace Listly.ViewModel
         [ObservableProperty]
         private int? quantity;
 
-        public AddShoppingItemPopupViewModel(ShoppingItemStore itemStore, Guid shoppingListId)
+        public AddShoppingItemPopupViewModel(Guid shoppingListId)
         {
-            _itemStore = itemStore;
             ShoppingListId = shoppingListId;
         }
 
@@ -46,7 +43,6 @@ namespace Listly.ViewModel
                 Quantity = Quantity
             };
 
-            await _itemStore.AddItemToShoppingList(shoppingItem);
             WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
             await MopupService.Instance.PopAsync();
         }

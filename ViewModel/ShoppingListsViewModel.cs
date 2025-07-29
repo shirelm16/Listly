@@ -30,6 +30,13 @@ namespace Listly.ViewModel
                 var list = m.Value;
                 await _shoppingListStore.RenameShoppingList(list.Id, list.Name);
             });
+
+            WeakReferenceMessenger.Default.Register<ShoppingListCreatedMessage>(this, async (r, m) =>
+            {
+                var list = m.Value;
+                await _shoppingListStore.AddShoppingList(list);
+                ShoppingLists.Add(list);
+            });
         }
 
         [RelayCommand]
@@ -51,21 +58,12 @@ namespace Listly.ViewModel
         [RelayCommand]
         async Task AddShoppingListAsync()
         {
-            var result = await Shell.Current.DisplayPromptAsync(
-                "New Shopping List",
-                "Enter list name:",
-                "Create", "Cancel");
-
-            if (!string.IsNullOrWhiteSpace(result))
+            var popupVm = new AddShoppingListPopupViewModel();
+            var popup = new AddShoppingListPopup
             {
-                var shoppingList = new ShoppingList
-                {
-                    Name = result,
-                    Id = Guid.NewGuid()
-                };
-                await _shoppingListStore.AddShoppingList(shoppingList);
-                ShoppingLists.Add(shoppingList);
-            }
+                BindingContext = popupVm
+            };
+            await MopupService.Instance.PushAsync(popup);
         }
 
         [RelayCommand]

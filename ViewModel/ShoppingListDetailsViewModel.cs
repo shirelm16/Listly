@@ -25,11 +25,12 @@ namespace Listly.ViewModel
         {
             _shoppingItemStore = shoppingItemStore;
 
-            WeakReferenceMessenger.Default.Register<ShoppingItemCreatedMessage>(this, (r, m) =>
+            WeakReferenceMessenger.Default.Register<ShoppingItemCreatedMessage>(this, async (r, m) =>
             {
                 if (m.Value.ShoppingListId == ShoppingList?.Id)
                 {
                     Items.Add(m.Value);
+                    await _shoppingItemStore.AddItemToShoppingList(m.Value);
                 }
             });
 
@@ -76,7 +77,7 @@ namespace Listly.ViewModel
         [RelayCommand]
         async Task ShowAddItemPopup()
         {
-            var popupVm = new AddShoppingItemPopupViewModel(_shoppingItemStore, ShoppingList.Id);
+            var popupVm = new AddShoppingItemPopupViewModel(ShoppingList.Id);
             var popup = new AddShoppingItemPopup
             {
                 BindingContext = popupVm
