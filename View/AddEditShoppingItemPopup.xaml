@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mopups:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+             x:Class="Listly.View.AddEditShoppingItemPopup"
+             xmlns:converters="clr-namespace:Listly.Converters"
+             BackgroundColor="#80000000">
+    <Border BackgroundColor="{StaticResource Surface}"
+            StrokeThickness="0"
+            Padding="24"
+            Margin="20"
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            WidthRequest="340"
+            StrokeShape="RoundRectangle 20">
+        <Border.Shadow>
+            <Shadow Brush="Black" Opacity="0.25" Radius="24" Offset="0,8"/>
+        </Border.Shadow>
+
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="20">
+            <!-- Title -->
+            <Label Grid.Row="0"
+                   Text="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=Title}"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource OnSurface}"
+                   HorizontalOptions="Center"/>
+
+            <!-- Item Name Input -->
+            <Border Grid.Row="1"
+                    Stroke="{StaticResource Outline}"
+                    StrokeThickness="1"
+                    BackgroundColor="{StaticResource Surface}"
+                    StrokeShape="RoundRectangle 12"
+                    HeightRequest="56">
+                <Entry Text="{Binding Name}"
+                       BackgroundColor="Transparent"
+                       Placeholder="Item name"
+                       FontSize="16"
+                       TextColor="{StaticResource OnSurface}"
+                       PlaceholderColor="{StaticResource OnSurfaceVariant}"
+                       VerticalOptions="Center"
+                       Margin="16,0"/>
+            </Border>
+
+            <!-- Quantity Section -->
+            <StackLayout Grid.Row="2" Spacing="12">
+                <Label Text="Quantity"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource OnSurface}"/>
+
+                <Grid ColumnDefinitions="*,60,60" ColumnSpacing="12">
+                    <Border Grid.Column="0"
+                            Stroke="{StaticResource Outline}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource Surface}"
+                            StrokeShape="RoundRectangle 12"
+                            HeightRequest="56">
+                        <Entry Text="{Binding Quantity, Mode=TwoWay, Converter={StaticResource NullableIntConverter}}"
+                               Placeholder="Quantity"
+                               FontSize="16"
+                               TextColor="{StaticResource OnSurface}"
+                               PlaceholderColor="{StaticResource OnSurfaceVariant}"
+                               VerticalOptions="Center"
+                               Margin="16,0"/>
+                    </Border>
+
+                    <Button Grid.Column="1"
+                            Text="−"
+                            Command="{Binding DecreaseQuantityCommand}"
+                            BackgroundColor="{StaticResource SurfaceVariant}"
+                            TextColor="{StaticResource OnSurface}"
+                            WidthRequest="56"
+                            HeightRequest="56"
+                            CornerRadius="28"
+                            FontSize="20"
+                            FontAttributes="Bold"/>
+
+                    <Button Grid.Column="2"
+                            Text="+"
+                            Command="{Binding IncreaseQuantityCommand}"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="{StaticResource OnPrimary}"
+                            WidthRequest="56"
+                            HeightRequest="56"
+                            CornerRadius="28"
+                            FontSize="20"
+                            FontAttributes="Bold"/>
+                </Grid>
+            </StackLayout>
+
+            <!-- Action Buttons -->
+            <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="16">
+                <Button Grid.Column="0"
+                    Text="Cancel"
+                    Command="{Binding CancelCommand}"
+                    BackgroundColor="{StaticResource SurfaceVariant}"
+                    TextColor="{StaticResource OnSurface}"
+                    HeightRequest="48"
+                    CornerRadius="12"
+                    FontSize="16"/>
+
+                <Button Grid.Column="1"
+                    Text="Save"
+                    Command="{Binding SaveCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="{StaticResource OnPrimary}"
+                    HeightRequest="48"
+                    CornerRadius="12"
+                    FontSize="16"
+                    FontAttributes="Bold"/>
+            </Grid>
+        </Grid>
+    </Border>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:NullableIntConverter x:Key="NullableIntConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+</mopups:PopupPage>

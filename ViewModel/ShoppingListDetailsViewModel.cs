@@ -49,11 +49,7 @@ namespace Listly.ViewModel
         [RelayCommand]
         async Task EditItem(ShoppingItem shoppingItem)
         {
-            var popupVm = new EditShoppingItemViewModel(shoppingItem);
-            var popup = new EditShoppingItemPopup
-            {
-                BindingContext = popupVm
-            };
+            var popup = new AddEditShoppingItemPopup("Edit Item", ShoppingList.Id, shoppingItem);
             await MopupService.Instance.PushAsync(popup);
         }
 
@@ -75,13 +71,9 @@ namespace Listly.ViewModel
         }
 
         [RelayCommand]
-        async Task ShowAddItemPopup()
+        async Task AddItem()
         {
-            var popupVm = new AddShoppingItemPopupViewModel(ShoppingList.Id);
-            var popup = new AddShoppingItemPopup
-            {
-                BindingContext = popupVm
-            };
+            var popup = new AddEditShoppingItemPopup("Add Item", ShoppingList.Id);
             await MopupService.Instance.PushAsync(popup);
         }
 

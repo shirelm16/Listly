@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Kotlin.Jvm;
 using Listly.Messages;
 using Listly.Model;
 using Mopups.Services;
@@ -28,7 +27,8 @@ namespace Listly.ViewModel
             var shoppingList = new ShoppingList
             {
                 Name = Name,
-                Id = Guid.NewGuid()
+                Id = Guid.NewGuid(),
+                LastModified = DateTime.UtcNow
             };
 
             WeakReferenceMessenger.Default.Send(new ShoppingListCreatedMessage(shoppingList));

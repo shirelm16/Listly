@@ -4,66 +4,95 @@
              xmlns:model="clr-namespace:Listly.Model"
              xmlns:viewmodel="clr-namespace:Listly.ViewModel"
              x:DataType="viewmodel:ShoppingListsViewModel"
-             Title="{Binding Title}"
              x:Class="Listly.View.MainPage"
              BackgroundColor="{StaticResource Background}">
-    <Grid ColumnDefinitions="*" RowDefinitions="*,Auto">
-        <CollectionView ItemsSource="{Binding ShoppingLists}"
-                        SelectionMode="None">
+    <Grid RowDefinitions="Auto,*">
+        <Border Grid.Row="0" 
+                BackgroundColor="{StaticResource Surface}"
+                StrokeThickness="0">
+            <Border.Shadow>
+                <Shadow Brush="Black" Opacity="0.08" Radius="8" Offset="0,2"/>
+            </Border.Shadow>
+
+            <Grid ColumnDefinitions="*,Auto" Padding="20,15,20,10">
+                <StackLayout Grid.Column="0">
+                    <Label Text="My Shopping Lists" 
+                           FontSize="28" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource OnSurface}"/>
+                    <Label Text="{Binding ShoppingLists.Count, StringFormat='{0} lists', Mode=TwoWay}"
+                           FontSize="14"
+                           TextColor="{StaticResource OnSurfaceVariant}"/>
+                </StackLayout>
+
+                <Button Grid.Column="1"
+                        Text="+"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource OnPrimary}"
+                        WidthRequest="56"
+                        HeightRequest="56"
+                        CornerRadius="28"
+                        FontSize="24"
+                        FontAttributes="Bold"
+                        Command="{Binding AddListCommand}">
+                    <Button.Shadow>
+                        <Shadow Brush="{StaticResource Primary}" Opacity="0.3" Radius="8" Offset="0,4"/>
+                    </Button.Shadow>
+                </Button>
+            </Grid>
+        </Border>
+        <CollectionView Grid.Row="1" 
+                        ItemsSource="{Binding ShoppingLists}"
+                        Margin="16,8">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="model:ShoppingList">
-                    <Frame HeightRequest="125"
-                           Margin="10,5"
-                           CornerRadius="12"
-                           Padding="10"
-                           HasShadow="True"
-                           BorderColor="LightGray">
-                        <Frame.GestureRecognizers>
-                            <TapGestureRecognizer
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:ShoppingListsViewModel}}, x:DataType=viewmodel:ShoppingListsViewModel, Path=GoToDetailsCommand}"
-                                    CommandParameter="{Binding .}"/>
-                        </Frame.GestureRecognizers>
-                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,*" Margin="0,5,0,0">
-                            <Label Text="{Binding Name}" 
+                    <Border BackgroundColor="{StaticResource Surface}"
+                            StrokeThickness="0"
+                            Margin="0,8"
+                            Padding="20,16"
+                            StrokeShape="RoundRectangle 16">
+                        <Border.Shadow>
+                            <Shadow Brush="Black" Opacity="0.06" Radius="12" Offset="0,2"/>
+                        </Border.Shadow>
+                        <Grid ColumnDefinitions="*,Auto, Auto">
+                            <StackLayout Grid.Column="0" Spacing="4">
+                                <Label Text="{Binding Name}" 
                                    FontSize="18" 
                                    FontAttributes="Bold"
                                    TextColor="{StaticResource OnSurface}"/>
-                            <ImageButton Grid.Column="1"
-                                         Source="more.png"
-                                         HeightRequest="24"
-                                         WidthRequest="24"
-                                         BackgroundColor="Transparent"
-                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:ShoppingListsViewModel}}, x:DataType=viewmodel:ShoppingListsViewModel, Path=OpenMenuPopupCommand}"
-                                         CommandParameter="{Binding .}">
-                            </ImageButton>
-                            <Grid Grid.Row ="1" ColumnDefinitions="*,Auto">
-                                <ProgressBar Progress="{Binding Progress}" 
-                                             HeightRequest="6"
-                                             BackgroundColor="LightGray"
-                                             ProgressColor="Green"
-                                             HorizontalOptions="Fill"
-                                             VerticalOptions="Center"/>
-                                <Label Grid.Column="1"
-                                       Text="{Binding ProgressLabel}" 
+                                <Label Text="{Binding ItemCount, StringFormat='{0} items', Mode=TwoWay}"
+                                   FontSize="14"
+                                   TextColor="{StaticResource OnSurfaceVariant}"/>
+                                <Label Text="{Binding LastModified, StringFormat='Updated {0:MMM dd}', Mode=TwoWay}"
                                        FontSize="12"
-                                       VerticalOptions="Center"
-                                       Margin="10,0,0,0"
-                                       TextColor="{StaticResource OnSurface}"/>
-                            </Grid>
+                                       TextColor="{StaticResource OnSurfaceVariant}"/>
+                            </StackLayout>
+                            <!-- Action Buttons -->
+                            <Button Grid.Column="1"
+                                    Text="✏️"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource Primary}"
+                                    WidthRequest="44"
+                                    HeightRequest="44"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RenameListCommand}"
+                                    CommandParameter="{Binding}"/>
+
+                            <Button Grid.Column="2"
+                                    Text="🗑️"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource Error}"
+                                    WidthRequest="44"
+                                    HeightRequest="44"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteListCommand}"
+                                    CommandParameter="{Binding}"/>
                         </Grid>
-                    </Frame>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.GoToDetailsCommand}"
+                                                  CommandParameter="{Binding}"/>
+                        </Border.GestureRecognizers>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <Button Text="+ ADD"
-                Grid.Row="1"
-                HorizontalOptions="End"
-                Margin="10"
-                Padding="10,5"
-                BackgroundColor="{StaticResource Primary}"
-                TextColor="{StaticResource OnPrimary}"
-                FontAttributes="Bold"
-                CornerRadius="10"
-                Command="{Binding AddShoppingListCommand}"/>
     </Grid>
 </ContentPage>

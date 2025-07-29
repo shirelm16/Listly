@@ -6,70 +6,99 @@
              xmlns:viewmodel="clr-namespace:Listly.ViewModel"
              x:DataType="viewmodel:ShoppingListDetailsViewModel"
              xmlns:converters="clr-namespace:Listly.Converters"
-             Title="{Binding ShoppingList.Name}"
              BackgroundColor="{StaticResource Background}">
-    <Grid ColumnDefinitions="*" RowDefinitions="*,Auto">
-        <CollectionView ItemsSource="{Binding Items}" SelectionMode="None">
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header with List Name -->
+        <Border Grid.Row="0" 
+                BackgroundColor="{StaticResource Surface}"
+                StrokeThickness="0">
+            <Border.Shadow>
+                <Shadow Brush="Black" Opacity="0.08" Radius="8" Offset="0,2"/>
+            </Border.Shadow>
+
+            <Grid ColumnDefinitions="Auto,Auto" Padding="20,15">
+
+                <Label Grid.Column="1"
+                       Text="{Binding ShoppingList.Name}"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource OnSurface}"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center"/>
+            </Grid>
+        </Border>
+        <CollectionView Grid.Row="1" 
+                        ItemsSource="{Binding Items}" 
+                        Margin="16,8">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="model:ShoppingItem">
-                    <SwipeView>
-                        <SwipeView.RightItems>
-                            <SwipeItems Mode="Reveal">
-                                <SwipeItem
-                                        Text="Delete"
-                                        BackgroundColor="Red"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:ShoppingListDetailsViewModel}}, x:DataType=viewmodel:ShoppingListDetailsViewModel, Path=DeleteItemCommand}"
-                                        CommandParameter="{Binding .}"
-                                        IconImageSource="delete_white.png" />
-                            </SwipeItems>
-                        </SwipeView.RightItems>
-                        <Grid BackgroundColor="White" ColumnDefinitions="Auto, *, Auto" Padding="5" VerticalOptions="Center">
-                            <CheckBox Color="{StaticResource Primary}"
+                    <Border BackgroundColor="{StaticResource Surface}"
+                            StrokeThickness="0"
+                            Margin="0,6"
+                            Padding="16"
+                            StrokeShape="RoundRectangle 12">
+                        <Border.Shadow>
+                            <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
+                        </Border.Shadow>
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                            <CheckBox Grid.Column="0"
+                                      Color="{StaticResource Primary}"
                                       IsChecked="{Binding IsPurchased, Mode=TwoWay}" 
                                       VerticalOptions="Center"/>
-                                <Label Grid.Column="1"
-                                   Text="{Binding Name}"
-                                   VerticalOptions="Center"
-                                   FontSize="18"
-                                   TextColor="{StaticResource OnSurface}"
-                                   TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
 
-                            <Label Grid.Column="2"
-                                   Text="{Binding Quantity}"
-                                   FontSize="14"
-                                   TextColor="{StaticResource OnSurfaceVariant}"
-                                   Padding="6,2"
-                                   Margin="8,0,0,0"
-                                   HorizontalTextAlignment="Center"
-                                   VerticalTextAlignment="Center"
-                                   WidthRequest="32"
-                                   LineBreakMode="NoWrap"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center"/>
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:ShoppingListDetailsViewModel}}, x:DataType=viewmodel:ShoppingListDetailsViewModel, Path=EditItemCommand}"
-                                    CommandParameter="{Binding .}" />
-                            </Grid.GestureRecognizers>
+                            <StackLayout Grid.Column="1" 
+                                         Spacing="2" 
+                                         Margin="12,0,0,0"
+                                         VerticalOptions="Center">
+                                <Label Text="{Binding Name}"
+                                       FontSize="16"
+                                       TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
+                                <Label Text="{Binding Quantity, StringFormat='Qty: {0}'}"
+                                       FontSize="14"
+                                       TextColor="{StaticResource OnSurfaceVariant}"
+                                       IsVisible="{Binding Quantity, Converter={StaticResource NullOrEmptyToBoolConverter}}"/>
+                            </StackLayout>
+                            <Button Grid.Column="2"
+                                    Text="✏️"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource Primary}"
+                                    WidthRequest="50"
+                                    HeightRequest="50"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
+                                    CommandParameter="{Binding}"/>
+
+                            <Button Grid.Column="3"
+                                    Text="🗑️"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource Error}"
+                                    WidthRequest="50"
+                                    HeightRequest="50"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteItemCommand}"
+                                    CommandParameter="{Binding}"/>
                         </Grid>
-                    </SwipeView>
+                    </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <Button Text="+ ADD"
-                Grid.Row="1"
-                HorizontalOptions="End"
-                Margin="10"
-                Padding="10,5"
+        <Button Grid.Row="2"
+                Text="+ Add Item"
                 BackgroundColor="{StaticResource Primary}"
                 TextColor="{StaticResource OnPrimary}"
+                Margin="20"
+                Padding="20,16"
+                CornerRadius="25"
+                FontSize="16"
                 FontAttributes="Bold"
-                CornerRadius="10"
-                Command="{Binding ShowAddItemPopupCommand}"/>
+                Command="{Binding AddItemCommand}">
+            <Button.Shadow>
+                <Shadow Brush="{StaticResource Primary}" Opacity="0.3" Radius="12" Offset="0,4"/>
+            </Button.Shadow>
+        </Button>
     </Grid>
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:StrikeThroughIfPurchasedConverter x:Key="StrikeThroughIfPurchasedConverter" />
+            <converters:NullOrEmptyToBoolConverter x:Key="NullOrEmptyToBoolConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 </ContentPage>

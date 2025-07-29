@@ -6,9 +6,7 @@
     xmlns:view="clr-namespace:Listly.View"
     Shell.FlyoutBehavior="Disabled">
 
-    <ShellContent
-        Title="My Lists"
-        ContentTemplate="{DataTemplate view:MainPage}"
+    <ShellContent ContentTemplate="{DataTemplate view:MainPage}"
         Route="MainPage" />
 
 </Shell>

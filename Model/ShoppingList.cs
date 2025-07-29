@@ -19,18 +19,10 @@ namespace Listly.Model
         [Ignore]
         public List<ShoppingItem> Items { get; set; } = new();
 
-        public double Progress
-        {
-            get
-            {
-                if (Items == null || Items.Count == 0)
-                    return 0;
+        [Ignore]
+        public int ItemCount => Items.Count;
 
-                int purchased = Items.Count(i => i.IsPurchased);
-                return (double)purchased / Items.Count;
-            }
-        }
-
-        public string ProgressLabel => $"{Items.Count(i => i.IsPurchased)}/{Items.Count}";
+        [ObservableProperty]
+        DateTime lastModified;
     }
 }

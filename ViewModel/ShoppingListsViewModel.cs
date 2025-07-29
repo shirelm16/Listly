@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Listly.Messages;
 using Listly.Model;
@@ -18,7 +19,9 @@ namespace Listly.ViewModel
     public partial class ShoppingListsViewModel : BaseViewModel
     {
         private readonly ShoppingListStore _shoppingListStore;
-        public ObservableCollection<ShoppingList> ShoppingLists { get; } = new();
+
+        [ObservableProperty]
+        ObservableCollection<ShoppingList> _shoppingLists = new();
 
         public ShoppingListsViewModel(ShoppingListStore shoppingListStore)
         {
@@ -40,12 +43,6 @@ namespace Listly.ViewModel
         }
 
         [RelayCommand]
-        async Task OpenMenuPopup(ShoppingList selectedList)
-        {
-            await MopupService.Instance.PushAsync(new ListMenuPopup(selectedList, this));
-        }
-
-        [RelayCommand]
         async Task DeleteList(ShoppingList shoppingList)
         {
             if (shoppingList == null)
@@ -56,13 +53,18 @@ namespace Listly.ViewModel
         }
 
         [RelayCommand]
-        async Task AddShoppingListAsync()
+        async Task RenameList(ShoppingList shoppingList)
         {
-            var popupVm = new AddShoppingListPopupViewModel();
-            var popup = new AddShoppingListPopup
-            {
-                BindingContext = popupVm
-            };
+            if (shoppingList == null)
+                return;
+            var popup = new RenameListPopup(shoppingList);
+            await MopupService.Instance.PushAsync(popup);
+        }
+
+        [RelayCommand]
+        async Task AddList()
+        {
+            var popup = new AddShoppingListPopup();
             await MopupService.Instance.PushAsync(popup);
         }
 
@@ -105,11 +107,6 @@ namespace Listly.ViewModel
             {
                 IsBusy = false;
             }
-        }
-
-        public void Refresh()
-        {
-            OnPropertyChanged(nameof(ShoppingLists));
         }
     }
 }
