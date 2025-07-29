@@ -8,7 +8,7 @@
 
     <Grid VerticalOptions="End" Padding="20" BackgroundColor="Transparent">
         <Frame
-            BackgroundColor="White"
+            BackgroundColor="{StaticResource Surface}"
             Padding="15"
             CornerRadius="12"
             HasShadow="True"

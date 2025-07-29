@@ -5,25 +5,34 @@
              x:Class="Listly.View.RenameListPopup"
              BackgroundColor="#80000000"
              Padding="30">
-    <Frame BackgroundColor="White"
-            CornerRadius="16"
-            Padding="20"
-            WidthRequest="300"
-            HeightRequest="200"
-            HasShadow="True">
+    <Frame BackgroundColor="{StaticResource Surface}"
+           CornerRadius="16"
+           Padding="20"
+           WidthRequest="300"
+           HeightRequest="200"
+           HasShadow="True">
         <VerticalStackLayout Spacing="16">
             <Label Text="Rename List" FontAttributes="Bold" FontSize="18" />
             <Border Grid.Row="0"
-                    Stroke="LightGray"
+                    Stroke="{StaticResource Outline}"
                     StrokeThickness="1"
                     Background="White"
                     StrokeShape="RoundRectangle 10"
                     HeightRequest="40">
-                <Entry Text="{Binding Name}" Placeholder="Enter new name" />
+                <Entry Text="{Binding Name}" 
+                       TextColor="{StaticResource OnSurface}"
+                       BackgroundColor="Transparent"
+                       Placeholder="Enter new name" />
             </Border>
             <HorizontalStackLayout Spacing="12" HorizontalOptions="End">
-                <Button Text="Cancel" Command="{Binding CancelCommand}" />
-                <Button Text="Save" Command="{Binding SaveCommand}" />
+                <Button Text="Save" 
+                        Command="{Binding SaveCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource OnPrimary}"/>
+                <Button Text="Cancel" 
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="{StaticResource SurfaceVariant}"
+                        TextColor="{StaticResource OnSurface}"/>
             </HorizontalStackLayout>
         </VerticalStackLayout>
     </Frame>

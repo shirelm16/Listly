@@ -6,11 +6,10 @@
              xmlns:viewmodel="clr-namespace:Listly.ViewModel"
              x:DataType="viewmodel:ShoppingListDetailsViewModel"
              xmlns:converters="clr-namespace:Listly.Converters"
-             Title="{Binding ShoppingList.Name}">
-    <Grid ColumnDefinitions="*"
-      RowDefinitions="*,Auto">
-        <CollectionView ItemsSource="{Binding Items}"
-                SelectionMode="None">
+             Title="{Binding ShoppingList.Name}"
+             BackgroundColor="{StaticResource Background}">
+    <Grid ColumnDefinitions="*" RowDefinitions="*,Auto">
+        <CollectionView ItemsSource="{Binding Items}" SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="model:ShoppingItem">
                     <SwipeView>
@@ -25,17 +24,20 @@
                             </SwipeItems>
                         </SwipeView.RightItems>
                         <Grid BackgroundColor="White" ColumnDefinitions="Auto, *, Auto" Padding="5" VerticalOptions="Center">
-                                <CheckBox IsChecked="{Binding IsPurchased, Mode=TwoWay}" VerticalOptions="Center"/>
+                            <CheckBox Color="{StaticResource Primary}"
+                                      IsChecked="{Binding IsPurchased, Mode=TwoWay}" 
+                                      VerticalOptions="Center"/>
                                 <Label Grid.Column="1"
                                    Text="{Binding Name}"
                                    VerticalOptions="Center"
                                    FontSize="18"
+                                   TextColor="{StaticResource OnSurface}"
                                    TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
 
                             <Label Grid.Column="2"
                                    Text="{Binding Quantity}"
                                    FontSize="14"
-                                   TextColor="Gray"
+                                   TextColor="{StaticResource OnSurfaceVariant}"
                                    Padding="6,2"
                                    Margin="8,0,0,0"
                                    HorizontalTextAlignment="Center"
@@ -59,8 +61,8 @@
                 HorizontalOptions="End"
                 Margin="10"
                 Padding="10,5"
-                BackgroundColor="#007AFF"
-                TextColor="White"
+                BackgroundColor="{StaticResource Primary}"
+                TextColor="{StaticResource OnPrimary}"
                 FontAttributes="Bold"
                 CornerRadius="10"
                 Command="{Binding ShowAddItemPopupCommand}"/>

@@ -4,39 +4,55 @@
              xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
              x:Class="Listly.View.AddShoppingItemPopup"
              BackgroundColor="#80000000">
-    <Frame
-        BackgroundColor="White"
-        CornerRadius="12"
-        Padding="20"
-        VerticalOptions="Center"
-        HorizontalOptions="Center"
-        WidthRequest="300"
-        HasShadow="True">
+    <Frame BackgroundColor="{StaticResource Surface}"
+           CornerRadius="12"
+           Padding="20"
+           VerticalOptions="Center"
+           HorizontalOptions="Center"
+           WidthRequest="300"
+           HasShadow="True">
 
         <VerticalStackLayout Spacing="15">
-            <Label Text="Add New Item" FontAttributes="Bold" FontSize="18"/>
+            <Label Text="Add New Item" 
+                   FontAttributes="Bold" 
+                   FontSize="18"
+                   TextColor="{StaticResource OnSurface}"/>
 
             <Border Grid.Row="0"
-                    Stroke="LightGray"
+                    Stroke="{StaticResource Outline}"
                     StrokeThickness="1"
-                    Background="White"
+                    BackgroundColor="{StaticResource Surface}"
                     StrokeShape="RoundRectangle 10"
                     HeightRequest="40">
-                <Entry Placeholder="Item name" Text="{Binding ItemName}" />
+                <Entry Placeholder="Item name" 
+                       Text="{Binding ItemName}"
+                       TextColor="{StaticResource OnSurface}"
+                       BackgroundColor="Transparent"
+                       PlaceholderColor="{StaticResource OnSurfaceVariant}"/>
             </Border>
 
             <Border Grid.Row="0"
-                    Stroke="LightGray"
+                    Stroke="{StaticResource Outline}"
                     StrokeThickness="1"
                     Background="White"
                     StrokeShape="RoundRectangle 10"
                     HeightRequest="40">
-                <Entry Placeholder="Quantity (optional)" Text="{Binding Quantity}" Keyboard="Numeric" />
+                <Entry Placeholder="Quantity (optional)" 
+                       Text="{Binding Quantity}" 
+                       Keyboard="Numeric"
+                       TextColor="{StaticResource OnSurface}"
+                       PlaceholderColor="{StaticResource OnSurfaceVariant}"/>
             </Border>
 
             <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
-                <Button Text="Cancel" Command="{Binding CancelCommand}" />
-                <Button Text="Add" Command="{Binding AddCommand}" />
+                <Button Text="Cancel" 
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="{StaticResource SurfaceVariant}"
+                        TextColor="{StaticResource OnSurface}"/>
+                <Button Text="Add" 
+                        Command="{Binding AddCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource OnPrimary}"/>
             </HorizontalStackLayout>
         </VerticalStackLayout>
 

@@ -6,51 +6,49 @@
              x:DataType="viewmodel:ShoppingListsViewModel"
              Title="{Binding Title}"
              x:Class="Listly.View.MainPage"
-             BackgroundColor="#f9f9f9">
-
-
-    <Grid ColumnDefinitions="*"
-          RowDefinitions="*,Auto">
+             BackgroundColor="{StaticResource Background}">
+    <Grid ColumnDefinitions="*" RowDefinitions="*,Auto">
         <CollectionView ItemsSource="{Binding ShoppingLists}"
                         SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="model:ShoppingList">
                     <Frame HeightRequest="125"
-                               Margin="10,5"
-                               CornerRadius="12"
-                               Padding="10"
-                               HasShadow="True"
-                               BorderColor="LightGray">
+                           Margin="10,5"
+                           CornerRadius="12"
+                           Padding="10"
+                           HasShadow="True"
+                           BorderColor="LightGray">
                         <Frame.GestureRecognizers>
                             <TapGestureRecognizer
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:ShoppingListsViewModel}}, x:DataType=viewmodel:ShoppingListsViewModel, Path=GoToDetailsCommand}"
                                     CommandParameter="{Binding .}"/>
                         </Frame.GestureRecognizers>
-                        <Grid ColumnDefinitions="*,Auto" 
-                                  RowDefinitions="*,*"
-                                  Margin="0,5,0,0">
-                            <Label Text="{Binding Name}" FontSize="20" FontAttributes="Bold"/>
+                        <Grid ColumnDefinitions="*,Auto" RowDefinitions="*,*" Margin="0,5,0,0">
+                            <Label Text="{Binding Name}" 
+                                   FontSize="18" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource OnSurface}"/>
                             <ImageButton Grid.Column="1"
-                                             Source="more.png"
-                                             HeightRequest="24"
-                                             WidthRequest="24"
-                                             BackgroundColor="Transparent"
-                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:ShoppingListsViewModel}}, x:DataType=viewmodel:ShoppingListsViewModel, Path=OpenMenuPopupCommand}"
-                                             CommandParameter="{Binding .}">
+                                         Source="more.png"
+                                         HeightRequest="24"
+                                         WidthRequest="24"
+                                         BackgroundColor="Transparent"
+                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:ShoppingListsViewModel}}, x:DataType=viewmodel:ShoppingListsViewModel, Path=OpenMenuPopupCommand}"
+                                         CommandParameter="{Binding .}">
                             </ImageButton>
-                            <Grid Grid.Row ="1" 
-                                      ColumnDefinitions="*,Auto">
+                            <Grid Grid.Row ="1" ColumnDefinitions="*,Auto">
                                 <ProgressBar Progress="{Binding Progress}" 
-                                        HeightRequest="6"
-                                        BackgroundColor="LightGray"
-                                        ProgressColor="Green"
-                                        HorizontalOptions="Fill"
-                                        VerticalOptions="Center"/>
+                                             HeightRequest="6"
+                                             BackgroundColor="LightGray"
+                                             ProgressColor="Green"
+                                             HorizontalOptions="Fill"
+                                             VerticalOptions="Center"/>
                                 <Label Grid.Column="1"
-                                        Text="{Binding ProgressLabel}" 
-                                        FontSize="12"
-                                        VerticalOptions="Center"
-                                        Margin="10,0,0,0" />
+                                       Text="{Binding ProgressLabel}" 
+                                       FontSize="12"
+                                       VerticalOptions="Center"
+                                       Margin="10,0,0,0"
+                                       TextColor="{StaticResource OnSurface}"/>
                             </Grid>
                         </Grid>
                     </Frame>
@@ -62,8 +60,8 @@
                 HorizontalOptions="End"
                 Margin="10"
                 Padding="10,5"
-                BackgroundColor="#007AFF"
-                TextColor="White"
+                BackgroundColor="{StaticResource Primary}"
+                TextColor="{StaticResource OnPrimary}"
                 FontAttributes="Bold"
                 CornerRadius="10"
                 Command="{Binding AddShoppingListCommand}"/>

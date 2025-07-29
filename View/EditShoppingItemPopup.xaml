@@ -7,8 +7,8 @@
              BackgroundColor="#80000000"
              HeightRequest="300">
     <Border
-        BackgroundColor="White"
-        Stroke="#ccc"
+        BackgroundColor="{StaticResource Surface}"
+        Stroke="{StaticResource Outline}"
         StrokeThickness="1"
         Padding="24"
         Margin="20"
@@ -22,12 +22,13 @@
 
             <!-- Name input -->
             <Border Grid.Row="0"
-                    Stroke="LightGray"
+                    Stroke="{StaticResource Outline}"
                     StrokeThickness="1"
                     Background="White"
                     StrokeShape="RoundRectangle 10"
                     HeightRequest="50">
                 <Entry Text="{Binding Name, Mode=TwoWay}"
+                       TextColor="{StaticResource OnSurface}"
                        BackgroundColor="Transparent"
                        Placeholder="Item name"
                        FontSize="16"
@@ -42,18 +43,20 @@
                   ColumnSpacing="12"
                   VerticalOptions="Center">
                 <Border Grid.Column="0"
-                        Stroke="LightGray"
+                        Stroke="{StaticResource Outline}"
                         StrokeThickness="1"
                         Background="White"
                         StrokeShape="RoundRectangle 10"
                         HeightRequest="50">
                     <Entry Placeholder="Quantity"
-                       Text="{Binding Quantity, Mode=TwoWay}"
-                       BackgroundColor="Transparent"
-                       FontSize="16"
-                       VerticalOptions="Center"
-                       HorizontalOptions="Fill"
-                       Margin="12,0"/>
+                           PlaceholderColor="{StaticResource OnSurfaceVariant}"
+                           Text="{Binding Quantity, Mode=TwoWay}"
+                           TextColor="{StaticResource OnSurface}"
+                           BackgroundColor="Transparent"
+                           FontSize="16"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Fill"
+                           Margin="12,0"/>
                 </Border>
                 
                 <Button Grid.Column="1"
@@ -62,8 +65,8 @@
                         WidthRequest="50" 
                         HeightRequest="50"
                         CornerRadius="25"
-                        BackgroundColor="#DDDDDD"
-                        TextColor="#666666"
+                        BackgroundColor="{StaticResource SurfaceVariant}"
+                        TextColor="{StaticResource OnSurface}"
                         FontSize="20"
                         FontAttributes="Bold"/>
                 
@@ -73,8 +76,8 @@
                         WidthRequest="50" 
                         HeightRequest="50"
                         CornerRadius="25"
-                        BackgroundColor="#2196F3"
-                        TextColor="White"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource OnPrimary}"
                         FontSize="18"
                         FontAttributes="Bold"/>
             </Grid>
@@ -88,8 +91,8 @@
                 <Button Grid.Column="0"
                         Text="Save" 
                         Command="{Binding SaveCommand}" 
-                        BackgroundColor="#2196F3" 
-                        TextColor="White"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource OnPrimary}"
                         HeightRequest="45"
                         CornerRadius="10"
                         FontSize="16"
@@ -98,8 +101,8 @@
                 <Button Grid.Column="1"
                         Text="Cancel" 
                         Command="{Binding CancelCommand}" 
-                        BackgroundColor="#eeeeee" 
-                        TextColor="#666666"
+                        BackgroundColor="{StaticResource SurfaceVariant}"
+                        TextColor="{StaticResource OnSurface}"
                         HeightRequest="45"
                         CornerRadius="10"
                         FontSize="16"/>
