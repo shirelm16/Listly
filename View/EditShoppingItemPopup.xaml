@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mopups:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+             xmlns:viewmodel="clr-namespace:Listly.ViewModel"
+             x:Class="Listly.View.EditShoppingItemPopup"
+             BackgroundColor="#80000000"
+             HeightRequest="300">
+    <Border
+        BackgroundColor="White"
+        Stroke="#ccc"
+        StrokeThickness="1"
+        Padding="24"
+        Margin="20"
+        VerticalOptions="End"
+        HorizontalOptions="Center"
+        WidthRequest="320"
+        HeightRequest="240"
+        StrokeShape="RoundRectangle 20">
+
+        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="20">
+
+            <!-- Name input -->
+            <Border Grid.Row="0"
+                    Stroke="LightGray"
+                    StrokeThickness="1"
+                    Background="White"
+                    StrokeShape="RoundRectangle 10"
+                    HeightRequest="50">
+                <Entry Text="{Binding Name, Mode=TwoWay}"
+                       BackgroundColor="Transparent"
+                       Placeholder="Item name"
+                       FontSize="16"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Fill"
+                       Margin="12,0"/>
+            </Border>
+
+            <!-- Quantity controls -->
+            <Grid Grid.Row="1"
+                  ColumnDefinitions="*,50,50" 
+                  ColumnSpacing="12"
+                  VerticalOptions="Center">
+                <Border Grid.Column="0"
+                        Stroke="LightGray"
+                        StrokeThickness="1"
+                        Background="White"
+                        StrokeShape="RoundRectangle 10"
+                        HeightRequest="50">
+                    <Entry Placeholder="Quantity"
+                       Text="{Binding Quantity, Mode=TwoWay}"
+                       BackgroundColor="Transparent"
+                       FontSize="16"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Fill"
+                       Margin="12,0"/>
+                </Border>
+                
+                <Button Grid.Column="1"
+                        Text="-" 
+                        Command="{Binding DecreaseQuantityCommand}" 
+                        WidthRequest="50" 
+                        HeightRequest="50"
+                        CornerRadius="25"
+                        BackgroundColor="#DDDDDD"
+                        TextColor="#666666"
+                        FontSize="20"
+                        FontAttributes="Bold"/>
+                
+                <Button Grid.Column="2"
+                        Text="+" 
+                        Command="{Binding IncreaseQuantityCommand}" 
+                        WidthRequest="50" 
+                        HeightRequest="50"
+                        CornerRadius="25"
+                        BackgroundColor="#2196F3"
+                        TextColor="White"
+                        FontSize="18"
+                        FontAttributes="Bold"/>
+            </Grid>
+
+            <!-- Save / Cancel -->
+            <Grid Grid.Row="2" 
+                  ColumnDefinitions="*,*" 
+                  ColumnSpacing="16"
+                  HorizontalOptions="Fill">
+
+                <Button Grid.Column="0"
+                        Text="Save" 
+                        Command="{Binding SaveCommand}" 
+                        BackgroundColor="#2196F3" 
+                        TextColor="White"
+                        HeightRequest="45"
+                        CornerRadius="10"
+                        FontSize="16"
+                        FontAttributes="Bold"/>
+
+                <Button Grid.Column="1"
+                        Text="Cancel" 
+                        Command="{Binding CancelCommand}" 
+                        BackgroundColor="#eeeeee" 
+                        TextColor="#666666"
+                        HeightRequest="45"
+                        CornerRadius="10"
+                        FontSize="16"/>
+            </Grid>
+
+        </Grid>
+    </Border>
+</mopups:PopupPage>

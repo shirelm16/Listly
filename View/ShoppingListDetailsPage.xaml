@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:model="clr-namespace:Listly.Model"
+             x:Class="Listly.View.ShoppingListDetailsPage"
+             xmlns:viewmodel="clr-namespace:Listly.ViewModel"
+             x:DataType="viewmodel:ShoppingListDetailsViewModel"
+             xmlns:converters="clr-namespace:Listly.Converters"
+             Title="{Binding ShoppingList.Name}">
+    <Grid ColumnDefinitions="*"
+      RowDefinitions="*,Auto">
+        <CollectionView ItemsSource="{Binding Items}"
+                SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="model:ShoppingItem">
+                    <SwipeView>
+                        <SwipeView.RightItems>
+                            <SwipeItems Mode="Reveal">
+                                <SwipeItem
+                                        Text="Delete"
+                                        BackgroundColor="Red"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:ShoppingListDetailsViewModel}}, x:DataType=viewmodel:ShoppingListDetailsViewModel, Path=DeleteItemCommand}"
+                                        CommandParameter="{Binding .}"
+                                        IconImageSource="delete_white.png" />
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+                        <Grid BackgroundColor="White" ColumnDefinitions="Auto, *, Auto" Padding="5" VerticalOptions="Center">
+                                <CheckBox IsChecked="{Binding IsPurchased, Mode=TwoWay}" VerticalOptions="Center"/>
+                                <Label Grid.Column="1"
+                                   Text="{Binding Name}"
+                                   VerticalOptions="Center"
+                                   FontSize="18"
+                                   TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
+
+                            <Label Grid.Column="2"
+                                   Text="{Binding Quantity}"
+                                   FontSize="14"
+                                   TextColor="Gray"
+                                   Padding="6,2"
+                                   Margin="8,0,0,0"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"
+                                   WidthRequest="32"
+                                   LineBreakMode="NoWrap"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:ShoppingListDetailsViewModel}}, x:DataType=viewmodel:ShoppingListDetailsViewModel, Path=EditItemCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Grid.GestureRecognizers>
+                        </Grid>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Button Text="+ ADD"
+                Grid.Row="1"
+                HorizontalOptions="End"
+                Margin="10"
+                Padding="10,5"
+                BackgroundColor="#007AFF"
+                TextColor="White"
+                FontAttributes="Bold"
+                CornerRadius="10"
+                Command="{Binding ShowAddItemPopupCommand}"/>
+    </Grid>
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:StrikeThroughIfPurchasedConverter x:Key="StrikeThroughIfPurchasedConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+</ContentPage>

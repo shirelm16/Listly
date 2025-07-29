@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mopups:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+             x:Class="Listly.View.AddShoppingItemPopup"
+             BackgroundColor="#80000000">
+    <Frame
+        BackgroundColor="White"
+        CornerRadius="12"
+        Padding="20"
+        VerticalOptions="Center"
+        HorizontalOptions="Center"
+        WidthRequest="300"
+        HasShadow="True">
+
+        <VerticalStackLayout Spacing="15">
+            <Label Text="Add New Item" FontAttributes="Bold" FontSize="18"/>
+
+            <Border Grid.Row="0"
+                    Stroke="LightGray"
+                    StrokeThickness="1"
+                    Background="White"
+                    StrokeShape="RoundRectangle 10"
+                    HeightRequest="40">
+                <Entry Placeholder="Item name" Text="{Binding ItemName}" />
+            </Border>
+
+            <Border Grid.Row="0"
+                    Stroke="LightGray"
+                    StrokeThickness="1"
+                    Background="White"
+                    StrokeShape="RoundRectangle 10"
+                    HeightRequest="40">
+                <Entry Placeholder="Quantity (optional)" Text="{Binding Quantity}" Keyboard="Numeric" />
+            </Border>
+
+            <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                <Button Text="Cancel" Command="{Binding CancelCommand}" />
+                <Button Text="Add" Command="{Binding AddCommand}" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+    </Frame>
+</mopups:PopupPage>
