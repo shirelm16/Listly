@@ -61,7 +61,6 @@
                             <Button Grid.Column="2"
                                     Text="✏️"
                                     BackgroundColor="Transparent"
-                                    TextColor="{StaticResource Primary}"
                                     WidthRequest="50"
                                     HeightRequest="50"
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
@@ -70,12 +69,15 @@
                             <Button Grid.Column="3"
                                     Text="🗑️"
                                     BackgroundColor="Transparent"
-                                    TextColor="{StaticResource Error}"
                                     WidthRequest="50"
                                     HeightRequest="50"
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteItemCommand}"
                                     CommandParameter="{Binding}"/>
                         </Grid>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
+                                                  CommandParameter="{Binding}"/>
+                        </Border.GestureRecognizers>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
