@@ -30,16 +30,14 @@ namespace Listly.ViewModel
             {
                 if (m.Value.ShoppingListId == ShoppingList?.Id)
                 {
-                    await _shoppingItemStore.AddItemToShoppingList(m.Value);
                     ShoppingList.Items.Add(m.Value);
+                    WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
                 }
             });
 
             WeakReferenceMessenger.Default.Register<ShoppingItemUpdatedMessage>(this, async (r, m) =>
             {
                 var item = m.Value;
-                await _shoppingItemStore.UpdateShoppingItem(item);
-                
                 var itemChanged = ShoppingList.Items.First(i => i.Id == item.Id);
                 itemChanged.Name = item.Name;
                 itemChanged.IsPurchased = item.IsPurchased;
@@ -54,7 +52,7 @@ namespace Listly.ViewModel
         [RelayCommand]
         async Task EditItem(ShoppingItem shoppingItem)
         {
-            var popup = new AddEditShoppingItemPopup("Edit Item", ShoppingList.Id, shoppingItem);
+            var popup = new AddEditShoppingItemPopup("Edit Item", _shoppingItemStore, ShoppingList.Id, shoppingItem);
             await MopupService.Instance.PushAsync(popup);
         }
 
@@ -63,13 +61,30 @@ namespace Listly.ViewModel
         {
             ShoppingList.Items.Remove(shoppingItem);
             await _shoppingItemStore.RemoveShoppingItem(shoppingItem.Id);
+            WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
         }
 
         [RelayCommand]
         async Task AddItem()
         {
-            var popup = new AddEditShoppingItemPopup("Add Item", ShoppingList.Id);
+            var popup = new AddEditShoppingItemPopup("Add Item", _shoppingItemStore, ShoppingList.Id);
             await MopupService.Instance.PushAsync(popup);
+        }
+
+        partial void OnShoppingListChanged(ShoppingList value)
+        {
+            foreach (var item in value?.Items ?? Enumerable.Empty<ShoppingItem>())
+            {
+                item.PropertyChanged += ShoppingItem_PropertyChanged;
+            }
+        }
+
+        private async void ShoppingItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var item = sender as ShoppingItem;
+            await _shoppingItemStore.UpdateShoppingItem(item);
+
+            WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
         }
     }
 }

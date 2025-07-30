@@ -31,7 +31,6 @@ namespace Listly.ViewModel
             if (!string.IsNullOrWhiteSpace(Name) && _list.Name != Name)
             {
                 _list.Name = Name;
-                _list.LastModified = DateTime.UtcNow;
                 WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(_list));
             }
 

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Listly.Messages;
 using Listly.Model;
+using Listly.Store;
 using Mopups.Services;
 using System;
 using System.Collections;
@@ -19,10 +20,13 @@ namespace Listly.ViewModel
 
         private readonly ShoppingItem _shoppingItem;
 
-        public AddEditShoppingItemViewModel(ShoppingItem shoppingItem, Guid shoppingListId)
+        private readonly ShoppingItemStore _shoppingItemStore;
+
+        public AddEditShoppingItemViewModel(ShoppingItemStore shoppingItemStore, ShoppingItem shoppingItem, Guid shoppingListId)
         {
             _shoppingItem = shoppingItem;
             ShoppingListId = shoppingListId;
+            _shoppingItemStore = shoppingItemStore;
             Name = shoppingItem?.Name;
             Quantity = shoppingItem?.Quantity;
         }
@@ -53,13 +57,14 @@ namespace Listly.ViewModel
                         ShoppingListId = ShoppingListId,
                         Quantity = Quantity
                     };
-
+                    await _shoppingItemStore.AddItemToShoppingList(shoppingItem);
                     WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
                 }
                 else if(_shoppingItem.Name != Name || _shoppingItem.Quantity != Quantity)
                 {
                     _shoppingItem.Name = Name;
                     _shoppingItem.Quantity = Quantity;
+                    await _shoppingItemStore.UpdateShoppingItem(_shoppingItem);
                     WeakReferenceMessenger.Default.Send(new ShoppingItemUpdatedMessage(_shoppingItem));
                 }
             }

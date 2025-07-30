@@ -50,7 +50,7 @@ namespace Listly
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddTransient<ShoppingListDetailsPage>();
             builder.Services.AddSingleton<ShoppingListsViewModel>();
-            builder.Services.AddTransient<ShoppingListDetailsViewModel>();
+            builder.Services.AddScoped<ShoppingListDetailsViewModel>();
 
 
             return builder.Build();
