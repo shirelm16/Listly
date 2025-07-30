@@ -58,21 +58,43 @@
                                        TextColor="{StaticResource OnSurfaceVariant}"
                                        IsVisible="{Binding Quantity, Converter={StaticResource NullOrEmptyToBoolConverter}}"/>
                             </StackLayout>
-                            <Button Grid.Column="2"
-                                    Text="✏️"
-                                    BackgroundColor="Transparent"
-                                    WidthRequest="50"
-                                    HeightRequest="50"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
-                                    CommandParameter="{Binding}"/>
+                            <Frame Grid.Column="2"
+                                   BackgroundColor="Transparent"
+                                   BorderColor="Transparent"
+                                   WidthRequest="40"
+                                   HeightRequest="40"
+                                   CornerRadius="20"
+                                   Padding="0"
+                                   HasShadow="False">
+                                <Label Text="✏️" 
+                                       FontSize="14" 
+                                       TextColor="#2196F3"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"/>
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
+                                                  CommandParameter="{Binding}"/>
+                                </Frame.GestureRecognizers>
+                            </Frame>
 
-                            <Button Grid.Column="3"
-                                    Text="🗑️"
-                                    BackgroundColor="Transparent"
-                                    WidthRequest="50"
-                                    HeightRequest="50"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteItemCommand}"
-                                    CommandParameter="{Binding}"/>
+                            <Frame Grid.Column="3"
+                                   BackgroundColor="Transparent"
+                                   BorderColor="Transparent"
+                                   WidthRequest="40"
+                                   HeightRequest="40"
+                                   CornerRadius="20"
+                                   Padding="0"
+                                   HasShadow="False">
+                                <Label Text="🗑️" 
+                                       FontSize="14" 
+                                       TextColor="#F44336"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"/>
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteItemCommand}"
+                                                  CommandParameter="{Binding}"/>
+                                </Frame.GestureRecognizers>
+                            </Frame>
                         </Grid>
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
