@@ -20,7 +20,7 @@
                            FontSize="28" 
                            FontAttributes="Bold"
                            TextColor="{StaticResource OnSurface}"/>
-                    <Label Text="{Binding ShoppingLists.Count, StringFormat='{0} lists', Mode=TwoWay}"
+                    <Label Text="{Binding ShoppingLists.Count, StringFormat='{0} lists'}"
                            FontSize="14"
                            TextColor="{StaticResource OnSurfaceVariant}"/>
                 </StackLayout>
@@ -60,10 +60,10 @@
                                    FontSize="18" 
                                    FontAttributes="Bold"
                                    TextColor="{StaticResource OnSurface}"/>
-                                <Label Text="{Binding ItemCount, StringFormat='{0} items', Mode=TwoWay}"
+                                <Label Text="{Binding ItemCount, StringFormat='{0} items'}"
                                    FontSize="14"
                                    TextColor="{StaticResource OnSurfaceVariant}"/>
-                                <Label Text="{Binding LastModified, StringFormat='Updated {0:MMM dd}', Mode=TwoWay}"
+                                <Label Text="{Binding LastModifiedLocal, StringFormat='Updated {0:MMM dd HH:mm}'}"
                                        FontSize="12"
                                        TextColor="{StaticResource OnSurfaceVariant}"/>
                             </StackLayout>
@@ -102,7 +102,7 @@
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"/>
                                 <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteItemCommand}"
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteListCommand}"
                                                           CommandParameter="{Binding}"/>
                                 </Frame.GestureRecognizers>
                             </Frame>

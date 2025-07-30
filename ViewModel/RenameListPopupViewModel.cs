@@ -32,7 +32,7 @@ namespace Listly.ViewModel
             {
                 _list.Name = Name;
                 _list.LastModified = DateTime.UtcNow;
-                WeakReferenceMessenger.Default.Send(new ShoppingListRenamedMessage(_list));
+                WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(_list));
             }
 
             await MopupService.Instance.PopAsync();

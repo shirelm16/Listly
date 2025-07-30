@@ -28,10 +28,10 @@ namespace Listly.ViewModel
             Title = "My Lists";
             _shoppingListStore = shoppingListStore;
 
-            WeakReferenceMessenger.Default.Register<ShoppingListRenamedMessage>(this, async (r, m) =>
+            WeakReferenceMessenger.Default.Register<ShoppingListUpdatedMessage>(this, async (r, m) =>
             {
                 var list = m.Value;
-                await _shoppingListStore.RenameShoppingList(list.Id, list.Name);
+                await _shoppingListStore.UpdateShoppingList(list);
             });
 
             WeakReferenceMessenger.Default.Register<ShoppingListCreatedMessage>(this, async (r, m) =>

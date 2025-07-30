@@ -7,6 +7,7 @@ using Listly.Store;
 using Listly.View;
 using Mopups.Services;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -29,8 +30,8 @@ namespace Listly.ViewModel
             {
                 if (m.Value.ShoppingListId == ShoppingList?.Id)
                 {
-                    Items.Add(m.Value);
                     await _shoppingItemStore.AddItemToShoppingList(m.Value);
+                    ShoppingList.Items.Add(m.Value);
                 }
             });
 
@@ -38,13 +39,17 @@ namespace Listly.ViewModel
             {
                 var item = m.Value;
                 await _shoppingItemStore.UpdateShoppingItem(item);
+                
+                var itemChanged = ShoppingList.Items.First(i => i.Id == item.Id);
+                itemChanged.Name = item.Name;
+                itemChanged.IsPurchased = item.IsPurchased;
+                itemChanged.Quantity = item.Quantity;
             });
         }
 
         [ObservableProperty]
         ShoppingList shoppingList;
 
-        public ObservableCollection<ShoppingItem> Items { get; } = new();
 
         [RelayCommand]
         async Task EditItem(ShoppingItem shoppingItem)
@@ -56,18 +61,8 @@ namespace Listly.ViewModel
         [RelayCommand]
         async Task DeleteItem(ShoppingItem shoppingItem)
         {
-            Items.Remove(shoppingItem);
+            ShoppingList.Items.Remove(shoppingItem);
             await _shoppingItemStore.RemoveShoppingItem(shoppingItem.Id);
-        }
-
-        partial void OnShoppingListChanged(ShoppingList value)
-        {
-            Items.Clear();
-            foreach (var item in value?.Items ?? Enumerable.Empty<ShoppingItem>())
-            {
-                item.PropertyChanged += ShoppingItem_PropertyChanged;
-                Items.Add(item);
-            }
         }
 
         [RelayCommand]
@@ -75,15 +70,6 @@ namespace Listly.ViewModel
         {
             var popup = new AddEditShoppingItemPopup("Add Item", ShoppingList.Id);
             await MopupService.Instance.PushAsync(popup);
-        }
-
-        private async void ShoppingItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            var updatedItem = sender as ShoppingItem;
-            if (updatedItem != null)
-            {
-                await _shoppingItemStore.UpdateShoppingItem(updatedItem);
-            }
         }
     }
 }

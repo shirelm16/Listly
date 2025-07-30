@@ -28,14 +28,9 @@ namespace Listly.Store
             await _db.InsertAsync(shoppingList);
         }
 
-        public async Task RenameShoppingList(Guid id, string newName)
+        public async Task UpdateShoppingList(ShoppingList shoppingList)
         {
-            var list = await _db.Table<ShoppingList>().Where(l => l.Id == id).FirstOrDefaultAsync();
-            if (list != null)
-            {
-                list.Name = newName;
-                await _db.UpdateAsync(list);
-            }
+            await _db.UpdateAsync(shoppingList);
         }
 
         public async Task<List<ShoppingList>> GetShoppingLists()
@@ -44,9 +39,11 @@ namespace Listly.Store
 
             foreach (var list in lists)
             {
-                list.Items = await _db.Table<ShoppingItem>()
+                var items = await _db.Table<ShoppingItem>()
                                       .Where(item => item.ShoppingListId == list.Id)
                                       .ToListAsync();
+                foreach (var item in items)
+                    list.Items.Add(item);
             }
 
             return lists;

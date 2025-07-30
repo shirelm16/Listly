@@ -28,7 +28,7 @@
             </Grid>
         </Border>
         <CollectionView Grid.Row="1" 
-                        ItemsSource="{Binding Items}" 
+                        ItemsSource="{Binding ShoppingList.Items}" 
                         Margin="16,8">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="model:ShoppingItem">

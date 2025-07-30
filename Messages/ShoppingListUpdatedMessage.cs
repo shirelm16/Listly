@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace Listly.Messages
 {
-    public class ShoppingListRenamedMessage : ValueChangedMessage<ShoppingList>
+    public class ShoppingListUpdatedMessage : ValueChangedMessage<ShoppingList>
     {
-        public ShoppingListRenamedMessage(ShoppingList value) : base(value) { }
+        public ShoppingListUpdatedMessage(ShoppingList value) : base(value) { }
     }
 }
