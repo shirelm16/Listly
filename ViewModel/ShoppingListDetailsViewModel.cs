@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 namespace Listly.ViewModel
 {
     [QueryProperty(nameof(ShoppingList), "ShoppingList")]
-    public partial class ShoppingListDetailsViewModel : BaseViewModel
+    public partial class ShoppingListDetailsViewModel : BaseViewModel, IDisposable
     {
         private readonly ShoppingItemStore _shoppingItemStore;
 
@@ -85,6 +85,30 @@ namespace Listly.ViewModel
             await _shoppingItemStore.UpdateShoppingItem(item);
 
             WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this); // Prevents the finalizer from running.
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // Unregister all messages from WeakReferenceMessenger
+                WeakReferenceMessenger.Default.UnregisterAll(this);
+
+                // Unsubscribe from PropertyChanged events of items in the current ShoppingList
+                if (ShoppingList != null)
+                {
+                    foreach (var item in ShoppingList.Items ?? Enumerable.Empty<ShoppingItem>())
+                    {
+                        item.PropertyChanged -= ShoppingItem_PropertyChanged;
+                    }
+                }
+            }
         }
     }
 }

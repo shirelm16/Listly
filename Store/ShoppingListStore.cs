@@ -36,14 +36,17 @@ namespace Listly.Store
         public async Task<List<ShoppingList>> GetShoppingLists()
         {
             var lists = await _db.Table<ShoppingList>().ToListAsync();
+            var allItems = await _db.Table<ShoppingItem>().ToListAsync();
+            var itemsGroupedByList = allItems.GroupBy(item => item.ShoppingListId)
+                                          .ToDictionary(group => group.Key, group => group.ToList());
 
             foreach (var list in lists)
             {
-                var items = await _db.Table<ShoppingItem>()
-                                      .Where(item => item.ShoppingListId == list.Id)
-                                      .ToListAsync();
-                foreach (var item in items)
-                    list.Items.Add(item);
+                if (itemsGroupedByList.TryGetValue(list.Id, out var itemsForThisList))
+                {
+                    foreach (var item in itemsForThisList)
+                        list.Items.Add(item);
+                }
             }
 
             return lists;
@@ -51,6 +54,7 @@ namespace Listly.Store
 
         public async Task RemoveShoppingList(Guid id)
         {
+            await _db.Table<ShoppingItem>().Where(item => item.ShoppingListId == id).DeleteAsync();
             await _db.DeleteAsync<ShoppingList>(id);
         }
     }
