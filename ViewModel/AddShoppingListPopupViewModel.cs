@@ -17,21 +17,36 @@ namespace Listly.ViewModel
         [ObservableProperty]
         private string name;
 
+        public bool CanAdd => !string.IsNullOrWhiteSpace(Name?.Trim());
 
-        [RelayCommand]
+        public AddShoppingListPopupViewModel()
+        {
+            Title = "Add New List";
+        }
+
+
+        [RelayCommand(CanExecute = nameof(CanAdd))]
         private async Task Add()
         {
-            if (string.IsNullOrWhiteSpace(Name))
-                return;
+            var trimmedName = Name?.Trim();
 
-            var shoppingList = new ShoppingList
+            if (string.IsNullOrWhiteSpace(trimmedName))
             {
-                Name = Name,
-                Id = Guid.NewGuid(),
-                LastModified = DateTime.UtcNow
-            };
+                await Shell.Current.DisplayAlert("Invalid Name", "Please enter a valid name for the list.", "OK");
+                return;
+            }
+
+            // Validate name length (optional business rule)
+            if (trimmedName.Length > 100)
+            {
+                await Shell.Current.DisplayAlert("Name Too Long", "List name cannot exceed 100 characters.", "OK");
+                return;
+            }
+
+            var shoppingList = new ShoppingList(trimmedName);
 
             WeakReferenceMessenger.Default.Send(new ShoppingListCreatedMessage(shoppingList));
+
             await MopupService.Instance.PopAsync();
         }
 
@@ -39,6 +54,12 @@ namespace Listly.ViewModel
         private async Task Cancel()
         {
             await MopupService.Instance.PopAsync();
+        }
+
+        partial void OnNameChanged(string value)
+        {
+            OnPropertyChanged(nameof(CanAdd));
+            AddCommand.NotifyCanExecuteChanged();
         }
     }
 }

@@ -19,5 +19,15 @@ namespace Listly.Model
 
         [ObservableProperty]
         bool isPurchased;
+
+        public ShoppingItem() { }
+
+        public ShoppingItem(Guid shoppingListId, string name, int? quantity)
+        {
+            Id = Guid.NewGuid();
+            ShoppingListId = shoppingListId;
+            Name = name;
+            Quantity = quantity;
+        }
     }
 }

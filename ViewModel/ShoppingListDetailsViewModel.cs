@@ -52,13 +52,28 @@ namespace Listly.ViewModel
         [RelayCommand]
         async Task EditItem(ShoppingItem shoppingItem)
         {
-            var popup = new AddEditShoppingItemPopup("Edit Item", _shoppingItemStore, ShoppingList.Id, shoppingItem);
+            if (shoppingItem == null)
+                return;
+
+            var popup = new AddEditShoppingItemPopup(_shoppingItemStore, ShoppingList.Id, shoppingItem);
             await MopupService.Instance.PushAsync(popup);
         }
 
         [RelayCommand]
         async Task DeleteItem(ShoppingItem shoppingItem)
         {
+            if (shoppingItem == null)
+                return;
+
+            var confirmed = await Shell.Current.DisplayAlert(
+                    "Delete Item",
+                    $"Are you sure you want to delete '{shoppingItem.Name}'?",
+                    "Delete",
+                    "Cancel");
+
+            if (!confirmed)
+                return;
+
             ShoppingList.Items.Remove(shoppingItem);
             await _shoppingItemStore.RemoveShoppingItem(shoppingItem.Id);
             WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
@@ -67,7 +82,7 @@ namespace Listly.ViewModel
         [RelayCommand]
         async Task AddItem()
         {
-            var popup = new AddEditShoppingItemPopup("Add Item", _shoppingItemStore, ShoppingList.Id);
+            var popup = new AddEditShoppingItemPopup(_shoppingItemStore, ShoppingList.Id);
             await MopupService.Instance.PushAsync(popup);
         }
 

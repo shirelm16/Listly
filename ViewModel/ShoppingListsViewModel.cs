@@ -49,6 +49,15 @@ namespace Listly.ViewModel
             if (shoppingList == null)
                 return;
 
+            var confirmed = await Shell.Current.DisplayAlert(
+                    "Delete List",
+                    $"Are you sure you want to delete '{shoppingList.Name}'? This action cannot be undone.",
+                    "Delete",
+                    "Cancel");
+
+            if (!confirmed)
+                return;
+
             await _shoppingListStore.RemoveShoppingList(shoppingList.Id);
             ShoppingLists.Remove(shoppingList);
         }
@@ -58,6 +67,7 @@ namespace Listly.ViewModel
         {
             if (shoppingList == null)
                 return;
+
             var popup = new RenameListPopup(shoppingList);
             await MopupService.Instance.PushAsync(popup);
         }

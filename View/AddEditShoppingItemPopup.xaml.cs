@@ -7,10 +7,9 @@ namespace Listly.View;
 
 public partial class AddEditShoppingItemPopup : PopupPage
 {
-	public AddEditShoppingItemPopup(string title, ShoppingItemStore shoppingItemStore, Guid ShoppingListId, ShoppingItem shoppingItem = null)
+	public AddEditShoppingItemPopup(ShoppingItemStore shoppingItemStore, Guid ShoppingListId, ShoppingItem shoppingItem = null)
 	{
 		InitializeComponent();
 		BindingContext = new AddEditShoppingItemViewModel(shoppingItemStore, shoppingItem, ShoppingListId);
-		Title = title;
     }
 }

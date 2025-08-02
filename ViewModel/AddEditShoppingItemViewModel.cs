@@ -16,20 +16,15 @@ namespace Listly.ViewModel
 {
     public partial class AddEditShoppingItemViewModel : BaseViewModel
     {
-        public Guid ShoppingListId { get; }
-
         private readonly ShoppingItem _shoppingItem;
 
         private readonly ShoppingItemStore _shoppingItemStore;
 
-        public AddEditShoppingItemViewModel(ShoppingItemStore shoppingItemStore, ShoppingItem shoppingItem, Guid shoppingListId)
-        {
-            _shoppingItem = shoppingItem;
-            ShoppingListId = shoppingListId;
-            _shoppingItemStore = shoppingItemStore;
-            Name = shoppingItem?.Name;
-            Quantity = shoppingItem?.Quantity;
-        }
+        public Guid ShoppingListId { get; }
+
+        public bool IsEditMode => _shoppingItem != null;
+
+        public bool CanSave => !string.IsNullOrWhiteSpace(Name?.Trim()) && (!IsEditMode || HasChanges);
 
         [ObservableProperty]
         string name;
@@ -37,45 +32,124 @@ namespace Listly.ViewModel
         [ObservableProperty]
         int? quantity;
 
-        [RelayCommand]
-        void IncreaseQuantity() => Quantity = Quantity != null ? Quantity + 1 : 0;
+        public bool HasChanges
+        {
+            get
+            {
+                return !string.Equals(_shoppingItem?.Name, Name?.Trim(), StringComparison.Ordinal) ||
+                       _shoppingItem?.Quantity != Quantity;
+            }
+        }
+
+        public AddEditShoppingItemViewModel(ShoppingItemStore shoppingItemStore, ShoppingItem shoppingItem, Guid shoppingListId)
+        {
+            _shoppingItem = shoppingItem;
+            _shoppingItemStore = shoppingItemStore;
+            ShoppingListId = shoppingListId;
+            Name = shoppingItem?.Name;
+            Quantity = shoppingItem?.Quantity;
+            Title = IsEditMode ? "Edit Item" : "Add Item";
+        }
 
         [RelayCommand]
-        void DecreaseQuantity() => Quantity = Quantity != null ? Math.Max(0, Quantity.Value - 1) : 0;
+        void IncreaseQuantity()
+        {
+            Quantity = (Quantity ?? 0) + 1;
+            if (Quantity <= 0) Quantity = 1;
+        }
 
         [RelayCommand]
+        void DecreaseQuantity()
+        {
+            if (Quantity.HasValue)
+            {
+                Quantity = Math.Max(0, Quantity.Value - 1);
+                if (Quantity == 0) Quantity = null;
+            }
+        }
+
+        [RelayCommand(CanExecute = nameof(CanSave))]
         async Task Save()
         {
             if (!string.IsNullOrWhiteSpace(Name))
             {
-                if (_shoppingItem == null)
-                {
-                    var shoppingItem = new ShoppingItem
-                    {
-                        Name = Name,
-                        Id = Guid.NewGuid(),
-                        ShoppingListId = ShoppingListId,
-                        Quantity = Quantity
-                    };
-                    await _shoppingItemStore.AddItemToShoppingList(shoppingItem);
-                    WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
-                }
-                else if(_shoppingItem.Name != Name || _shoppingItem.Quantity != Quantity)
-                {
-                    _shoppingItem.Name = Name;
-                    _shoppingItem.Quantity = Quantity;
-                    await _shoppingItemStore.UpdateShoppingItem(_shoppingItem);
-                    WeakReferenceMessenger.Default.Send(new ShoppingItemUpdatedMessage(_shoppingItem));
-                }
-            }
+                var trimmedName = Name?.Trim();
 
-            await MopupService.Instance.PopAsync();
+                if (string.IsNullOrWhiteSpace(trimmedName))
+                {
+                    await Shell.Current.DisplayAlert("Invalid Name", "Please enter a valid name for the item.", "OK");
+                    return;
+                }
+
+                if (trimmedName.Length > 200)
+                {
+                    await Shell.Current.DisplayAlert("Name Too Long", "Item name cannot exceed 200 characters.", "OK");
+                    return;
+                }
+
+                if (Quantity.HasValue && (Quantity.Value < 1 || Quantity.Value > 999))
+                {
+                    await Shell.Current.DisplayAlert("Invalid Quantity", "Quantity must be between 1 and 999.", "OK");
+                    return;
+                }
+
+                if (IsEditMode)
+                {
+                    await UpdateExistingItem(trimmedName);
+                }
+                else
+                {
+                    await CreateNewItem(trimmedName);
+                }
+
+                await MopupService.Instance.PopAsync();
+            }
         }
 
         [RelayCommand]
         async Task Cancel()
         {
             await MopupService.Instance.PopAsync();
+        }
+
+        private async Task UpdateExistingItem(string trimmedName)
+        {
+            if (_shoppingItem == null) 
+                return;
+
+            var hasNameChanged = !string.Equals(_shoppingItem.Name, trimmedName, StringComparison.Ordinal);
+            var hasQuantityChanged = _shoppingItem.Quantity != Quantity;
+
+            if (hasNameChanged || hasQuantityChanged)
+            {
+                _shoppingItem.Name = trimmedName;
+                _shoppingItem.Quantity = Quantity;
+
+                await _shoppingItemStore.UpdateShoppingItem(_shoppingItem);
+                WeakReferenceMessenger.Default.Send(new ShoppingItemUpdatedMessage(_shoppingItem));
+            }
+        }
+
+        private async Task CreateNewItem(string trimmedName)
+        {
+            var shoppingItem = new ShoppingItem(ShoppingListId, trimmedName, Quantity);
+
+            await _shoppingItemStore.AddItemToShoppingList(shoppingItem);
+            WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
+        }
+
+        partial void OnNameChanged(string value)
+        {
+            OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(HasChanges));
+            SaveCommand.NotifyCanExecuteChanged();
+        }
+
+        partial void OnQuantityChanged(int? value)
+        {
+            OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(HasChanges));
+            SaveCommand.NotifyCanExecuteChanged();
         }
     }
 }

@@ -25,9 +25,16 @@ namespace Listly.Model
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(LastModifiedLocal))]
-        DateTime lastModified;
+        DateTime lastModified = DateTime.UtcNow;
 
         [Ignore]
         public DateTime LastModifiedLocal => LastModified.ToLocalTime();
+
+        public ShoppingList() { }
+
+        public ShoppingList(string name)
+        {
+            Name = name;
+        }
     }
 }
