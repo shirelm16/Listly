@@ -14,6 +14,12 @@ namespace Listly.Model
         [PrimaryKey]
         public Guid Id { get; set; }
 
+        [Ignore]
+        public string OwnerId { get; set; }
+
+        [Ignore]
+        public ObservableCollection<string> Collaborators { get; set; } = new();
+
         [ObservableProperty]
         string name;
 
@@ -32,9 +38,11 @@ namespace Listly.Model
 
         public ShoppingList() { }
 
-        public ShoppingList(string name)
+        public ShoppingList(string name, string ownerId)
         {
+            Id = Guid.NewGuid();
             Name = name;
+            OwnerId = ownerId;
         }
     }
 }

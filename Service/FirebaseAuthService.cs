@@ -8,7 +8,14 @@ using System.Threading.Tasks;
 
 namespace Listly.Service
 {
-    public class FirebaseAuthService
+    public interface IAuthService
+    {
+        Task<string> GetCurrentUserIdAsync();
+        Task<bool> IsAuthenticatedAsync();
+        Task SignInAnonymouslyAsync();
+    }
+
+    public class FirebaseAuthService : IAuthService
     {
         private readonly IFirebaseAuth _auth;
 
@@ -17,12 +24,25 @@ namespace Listly.Service
             _auth = auth;
         }
 
-        public async Task<IFirebaseUser> SignInAnonymouslyAsync()
+        public async Task<string> GetCurrentUserIdAsync()
         {
-            var result = await _auth.SignInAnonymouslyAsync();
-            return result;
+            var user = CrossFirebaseAuth.Current.CurrentUser;
+            if (user == null)
+            {
+                await SignInAnonymouslyAsync();
+                user = CrossFirebaseAuth.Current.CurrentUser;
+            }
+            return user?.Uid ?? string.Empty;
         }
 
-        public IFirebaseUser CurrentUser => _auth.CurrentUser;
+        public async Task<bool> IsAuthenticatedAsync()
+        {
+            return CrossFirebaseAuth.Current.CurrentUser != null;
+        }
+
+        public async Task SignInAnonymouslyAsync()
+        {
+            await CrossFirebaseAuth.Current.SignInAnonymouslyAsync();
+        }
     }
 }

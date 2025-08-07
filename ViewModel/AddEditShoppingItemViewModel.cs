@@ -18,7 +18,7 @@ namespace Listly.ViewModel
     {
         private readonly ShoppingItem _shoppingItem;
 
-        private readonly ShoppingItemStore _shoppingItemStore;
+        private readonly IShoppingItemStore _shoppingItemStore;
 
         public Guid ShoppingListId { get; }
 
@@ -41,7 +41,7 @@ namespace Listly.ViewModel
             }
         }
 
-        public AddEditShoppingItemViewModel(ShoppingItemStore shoppingItemStore, ShoppingItem shoppingItem, Guid shoppingListId)
+        public AddEditShoppingItemViewModel(IShoppingItemStore shoppingItemStore, ShoppingItem shoppingItem, Guid shoppingListId)
         {
             _shoppingItem = shoppingItem;
             _shoppingItemStore = shoppingItemStore;
@@ -125,7 +125,7 @@ namespace Listly.ViewModel
                 _shoppingItem.Name = trimmedName;
                 _shoppingItem.Quantity = Quantity;
 
-                await _shoppingItemStore.UpdateShoppingItem(_shoppingItem);
+                await _shoppingItemStore.UpdateAsync(_shoppingItem);
                 WeakReferenceMessenger.Default.Send(new ShoppingItemUpdatedMessage(_shoppingItem));
             }
         }
@@ -134,7 +134,7 @@ namespace Listly.ViewModel
         {
             var shoppingItem = new ShoppingItem(ShoppingListId, trimmedName, Quantity);
 
-            await _shoppingItemStore.AddItemToShoppingList(shoppingItem);
+            await _shoppingItemStore.CreateAsync(shoppingItem);
             WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
         }
 

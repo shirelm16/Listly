@@ -9,7 +9,15 @@ using System.Threading.Tasks;
 
 namespace Listly.Store
 {
-    public class ShoppingListStore
+    public interface IShoppingListStore
+    {
+        Task CreateAsync(ShoppingList shoppingList);
+        Task UpdateAsync(ShoppingList shoppingList);
+        Task<List<ShoppingList>> GetAllAsync();
+        Task DeleteAsync(Guid id);
+    }
+
+    public class ShoppingListStore : IShoppingListStore
     {
         private readonly SQLiteAsyncConnection _db;
 
@@ -23,17 +31,17 @@ namespace Listly.Store
             await _db.CreateTableAsync<ShoppingList>();
         }
 
-        public async Task AddShoppingList(ShoppingList shoppingList)
+        public async Task CreateAsync(ShoppingList shoppingList)
         {
             await _db.InsertAsync(shoppingList);
         }
 
-        public async Task UpdateShoppingList(ShoppingList shoppingList)
+        public async Task UpdateAsync(ShoppingList shoppingList)
         {
             await _db.UpdateAsync(shoppingList);
         }
 
-        public async Task<List<ShoppingList>> GetShoppingLists()
+        public async Task<List<ShoppingList>> GetAllAsync()
         {
             var lists = await _db.Table<ShoppingList>().ToListAsync();
             var allItems = await _db.Table<ShoppingItem>().ToListAsync();
@@ -52,7 +60,7 @@ namespace Listly.Store
             return lists;
         }
 
-        public async Task RemoveShoppingList(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
             await _db.Table<ShoppingItem>().Where(item => item.ShoppingListId == id).DeleteAsync();
             await _db.DeleteAsync<ShoppingList>(id);

@@ -12,6 +12,7 @@ using Plugin.Firebase.Bundled.Platforms.Android;
 using Mopups.Hosting;
 using Plugin.Firebase.Auth;
 using Plugin.Firebase.Bundled.Shared;
+using Plugin.Firebase.Firestore;
 
 namespace Listly
 {
@@ -50,8 +51,8 @@ namespace Listly
                 return sqliteService;
             });
 
-            builder.Services.AddSingleton<ShoppingListStore>();
-            builder.Services.AddSingleton<ShoppingItemStore>();
+            builder.Services.AddSingleton<IShoppingListStore, ShoppingListStore>();
+            builder.Services.AddSingleton<IShoppingItemStore, ShoppingItemStore>();
 
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddTransient<ShoppingListDetailsPage>();
@@ -74,15 +75,15 @@ namespace Listly
             });
 
             builder.Services.AddSingleton(_ => CrossFirebaseAuth.Current);
-            //builder.Services.AddSingleton(_ => CrossFirebaseFirestore.Current);
-            builder.Services.AddSingleton<FirebaseAuthService>();
+            builder.Services.AddSingleton(_ => CrossFirebaseFirestore.Current);
+            builder.Services.AddSingleton<IAuthService, FirebaseAuthService>();
             //builder.Services.AddSingleton<FirestoreService>();
             return builder;
         }
 
         private static CrossFirebaseSettings CreateCrossFirebaseSettings()
         {
-            return new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: false);
+            return new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: true);
         }
     }
 }

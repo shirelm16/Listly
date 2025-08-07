@@ -42,9 +42,9 @@
                         </Border.Shadow>
                         <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                             <CheckBox Grid.Column="0"
-                                      Color="{StaticResource Primary}"
-                                      IsChecked="{Binding IsPurchased, Mode=TwoWay}" 
-                                      VerticalOptions="Center"/>
+                                          Color="{StaticResource Primary}"
+                                          IsChecked="{Binding IsPurchased, Mode=TwoWay}" 
+                                          VerticalOptions="Center"/>
 
                             <StackLayout Grid.Column="1" 
                                          Spacing="2" 

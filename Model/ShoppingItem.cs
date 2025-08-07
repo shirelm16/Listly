@@ -11,6 +11,9 @@ namespace Listly.Model
         [Indexed]
         public Guid ShoppingListId { get; set; }
 
+        [Ignore]
+        public string AddedBy { get; set; }
+
         [ObservableProperty]
         string name;
 
