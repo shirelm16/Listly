@@ -1,12 +1,16 @@
-﻿namespace Listly
+﻿using Listly.Service;
+
+namespace Listly
 {
     public partial class App : Application
     {
-        public App()
+        public App(IAuthService authService)
         {
             InitializeComponent();
 
             MainPage = new AppShell();
+
+            Task.Run(async () => await authService.SignInAnonymouslyAsync());
         }
     }
 }

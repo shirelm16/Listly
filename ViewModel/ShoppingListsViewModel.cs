@@ -18,12 +18,12 @@ namespace Listly.ViewModel
 {
     public partial class ShoppingListsViewModel : BaseViewModel
     {
-        private readonly ShoppingListStore _shoppingListStore;
+        private readonly IShoppingListStore _shoppingListStore;
 
         [ObservableProperty]
         ObservableCollection<ShoppingList> _shoppingLists = new();
 
-        public ShoppingListsViewModel(ShoppingListStore shoppingListStore)
+        public ShoppingListsViewModel(IShoppingListStore shoppingListStore)
         {
             Title = "My Lists";
             _shoppingListStore = shoppingListStore;
@@ -32,13 +32,13 @@ namespace Listly.ViewModel
             {
                 var list = m.Value;
                 list.LastModified = DateTime.UtcNow;
-                await _shoppingListStore.UpdateShoppingList(list);
+                await _shoppingListStore.UpdateAsync(list);
             });
 
             WeakReferenceMessenger.Default.Register<ShoppingListCreatedMessage>(this, async (r, m) =>
             {
                 var list = m.Value;
-                await _shoppingListStore.AddShoppingList(list);
+                await _shoppingListStore.CreateAsync(list);
                 ShoppingLists.Add(list);
             });
         }
@@ -58,7 +58,7 @@ namespace Listly.ViewModel
             if (!confirmed)
                 return;
 
-            await _shoppingListStore.RemoveShoppingList(shoppingList.Id);
+            await _shoppingListStore.DeleteAsync(shoppingList.Id);
             ShoppingLists.Remove(shoppingList);
         }
 
@@ -100,7 +100,7 @@ namespace Listly.ViewModel
             try
             {
                 IsBusy = true;
-                var shoppingLists = await _shoppingListStore.GetShoppingLists();
+                var shoppingLists = await _shoppingListStore.GetAllAsync();
 
                 if (ShoppingLists.Count > 0)
                     ShoppingLists.Clear();
