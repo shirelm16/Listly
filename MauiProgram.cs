@@ -3,10 +3,15 @@ using Listly.Store;
 using Listly.View;
 using Listly.ViewModel;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.LifecycleEvents;
+
 #if ANDROID
 using Microsoft.Maui.Controls.Compatibility.Platform.Android;
+using Plugin.Firebase.Bundled.Platforms.Android;
 #endif
 using Mopups.Hosting;
+using Plugin.Firebase.Auth;
+using Plugin.Firebase.Bundled.Shared;
 
 namespace Listly
 {
@@ -17,6 +22,7 @@ namespace Listly
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .RegisterFirebaseServices()
                 .ConfigureMauiHandlers(handlers =>
                 {
 #if ANDROID
@@ -54,6 +60,29 @@ namespace Listly
 
 
             return builder.Build();
+        }
+
+        private static MauiAppBuilder RegisterFirebaseServices(this MauiAppBuilder builder)
+        {
+            builder.ConfigureLifecycleEvents(events => {
+#if ANDROID
+                events.AddAndroid(android => android.OnCreate((activity, _) =>
+                {
+                    CrossFirebase.Initialize(activity, CreateCrossFirebaseSettings());
+                }));
+#endif
+            });
+
+            builder.Services.AddSingleton(_ => CrossFirebaseAuth.Current);
+            //builder.Services.AddSingleton(_ => CrossFirebaseFirestore.Current);
+            builder.Services.AddSingleton<FirebaseAuthService>();
+            //builder.Services.AddSingleton<FirestoreService>();
+            return builder;
+        }
+
+        private static CrossFirebaseSettings CreateCrossFirebaseSettings()
+        {
+            return new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: false);
         }
     }
 }
