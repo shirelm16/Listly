@@ -1,11 +1,11 @@
 ﻿using Listly.Model;
+using Listly.Service;
+using Plugin.Firebase.Firestore;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Plugin.Firebase.Firestore;
-using System.Diagnostics;
-using Listly.Service;
 
 namespace Listly.Store
 {
@@ -15,6 +15,8 @@ namespace Listly.Store
         Task UpdateShoppingListAsync(ShoppingList shoppingList);
         Task<List<ShoppingList>> GetAllShoppingListsAsync();
         Task DeleteListAsync(Guid id);
+        Task<ShoppingList> GetSharedListByShareIdAsync(string shareId);
+        Task AddCurrentUserAsCollaboratorOfShoppingList(ShoppingList shoppingList);
     }
 
     public interface IShoppingItemStore
@@ -42,7 +44,8 @@ namespace Listly.Store
             if (string.IsNullOrEmpty(currentUserId))
                 throw new InvalidOperationException("User must be authenticated");
 
-            var doc = ShoppingListDocument.FromShoppingList(shoppingList, currentUserId);
+            shoppingList.OwnerId = currentUserId;
+            var doc = ShoppingListDocument.FromShoppingList(shoppingList);
             var docRef = _collection.GetDocument(shoppingList.Id.ToString());
 
             await docRef.SetDataAsync(doc);
@@ -80,27 +83,25 @@ namespace Listly.Store
             if (string.IsNullOrEmpty(currentUserId))
                 return [];
 
-            var snapshot = await _collection
+            var ownedListsSnapshot = await _collection
                 .WhereEqualsTo("ownerId", currentUserId)
                 .GetDocumentsAsync<ShoppingListDocument>();
 
+            var collaboratorListsSnapshot = await _collection
+                .WhereArrayContains("collaborators", currentUserId)
+                .GetDocumentsAsync<ShoppingListDocument>();
+
+            var allDocuments = ownedListsSnapshot.Documents
+                .Concat(collaboratorListsSnapshot.Documents)
+                .GroupBy(doc => doc.Data.Id)
+                .Select(group => group.First())
+                .ToList();
+
             var shoppingLists = new List<ShoppingList>();
 
-            var fetchTasks = snapshot.Documents.Select(async doc =>
+            var fetchTasks = allDocuments.Select(async doc =>
             {
-                var shoppingList = doc.Data.ToShoppingList();
-
-                var itemsCollection = doc.Reference.GetCollection("items");
-                var itemsSnapshot = await itemsCollection.GetDocumentsAsync<ShoppingItemDocument>();
-
-                shoppingList.Items.Clear();
-                foreach (var itemDoc in itemsSnapshot.Documents)
-                {
-                    var item = itemDoc.Data.ToShoppingItem();
-                    shoppingList.Items.Add(item);
-                }
-
-                return shoppingList;
+                return await GetShoppingListWithItems(doc);
             });
 
             return (await Task.WhenAll(fetchTasks)).ToList();
@@ -113,7 +114,7 @@ namespace Listly.Store
             if (string.IsNullOrEmpty(currentUserId))
                 throw new InvalidOperationException("User must be authenticated");
 
-            var doc = ShoppingListDocument.FromShoppingList(shoppingList, currentUserId);
+            var doc = ShoppingListDocument.FromShoppingList(shoppingList);
             var docRef = _collection.GetDocument(shoppingList.Id.ToString());
 
             await docRef.SetDataAsync(doc);
@@ -128,6 +129,49 @@ namespace Listly.Store
 
             var doc = ShoppingItemDocument.FromShoppingItem(shoppingItem);
             await itemRef.SetDataAsync(doc, SetOptions.Merge());
+        }
+
+        public async Task<ShoppingList> GetSharedListByShareIdAsync(string shareId)
+        {
+            var query = await _collection
+                    .WhereEqualsTo("shareId", shareId)
+                    .GetDocumentsAsync<ShoppingListDocument>();
+
+            var sharedListDoc = query.Documents.FirstOrDefault();
+            
+            if (sharedListDoc == null || sharedListDoc.Data.ToShoppingList().ShareExpiresAt < DateTime.UtcNow)
+                return null;
+
+
+            return await GetShoppingListWithItems(sharedListDoc);
+        }
+
+        public async Task AddCurrentUserAsCollaboratorOfShoppingList(ShoppingList shoppingList)
+        {
+            var currentUserId = await _authService.GetCurrentUserIdAsync();
+
+            if (string.IsNullOrEmpty(currentUserId))
+                throw new InvalidOperationException("User must be authenticated");
+
+            shoppingList.Collaborators.Add(currentUserId);
+            await UpdateShoppingListAsync(shoppingList);
+        }
+
+        private async Task<ShoppingList> GetShoppingListWithItems(IDocumentSnapshot<ShoppingListDocument> doc)
+        {
+            var shoppingList = doc.Data.ToShoppingList();
+
+            var itemsCollection = doc.Reference.GetCollection("items");
+            var itemsSnapshot = await itemsCollection.GetDocumentsAsync<ShoppingItemDocument>();
+
+            shoppingList.Items.Clear();
+            foreach (var itemDoc in itemsSnapshot.Documents)
+            {
+                var item = itemDoc.Data.ToShoppingItem();
+                shoppingList.Items.Add(item);
+            }
+
+            return shoppingList;
         }
     }
 }

@@ -54,25 +54,43 @@
                         <Border.Shadow>
                             <Shadow Brush="Black" Opacity="0.06" Radius="12" Offset="0,2"/>
                         </Border.Shadow>
-                        <Grid ColumnDefinitions="*,Auto, Auto">
+                        <Grid ColumnDefinitions="*, Auto, Auto, Auto">
                             <StackLayout Grid.Column="0" Spacing="4">
                                 <Label Text="{Binding Name}" 
-                                   FontSize="18" 
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource OnSurface}"/>
+                                       FontSize="18" 
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource OnSurface}"/>
                                 <Label Text="{Binding ItemCount, StringFormat='{0} items'}"
-                                   FontSize="14"
-                                   TextColor="{StaticResource OnSurfaceVariant}"/>
+                                       FontSize="14"
+                                       TextColor="{StaticResource OnSurfaceVariant}"/>
                                 <Label Text="{Binding LastModifiedLocal, StringFormat='Updated {0:MMM dd HH:mm}'}"
                                        FontSize="12"
                                        TextColor="{StaticResource OnSurfaceVariant}"/>
                             </StackLayout>
-                            
-                            
+
                             <Frame Grid.Column="1"
                                    BackgroundColor="Transparent"
                                    BorderColor="Transparent"
-                                   WidthRequest="40"
+                                   WidthRequest="30"
+                                   HeightRequest="40"
+                                   CornerRadius="20"
+                                   Padding="0"
+                                   HasShadow="False">
+                                <Label Text="👤+" 
+                                       FontSize="14" 
+                                       TextColor="#2196F3"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"/>      
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ShareListCommand}"
+                                                          CommandParameter="{Binding}"/>
+                                </Frame.GestureRecognizers>
+                            </Frame>
+                            
+                            <Frame Grid.Column="2"
+                                   BackgroundColor="Transparent"
+                                   BorderColor="Transparent"
+                                   WidthRequest="30"
                                    HeightRequest="40"
                                    CornerRadius="20"
                                    Padding="0"
@@ -88,10 +106,10 @@
                                 </Frame.GestureRecognizers>
                             </Frame>
 
-                            <Frame Grid.Column="2"
+                            <Frame Grid.Column="3"
                                    BackgroundColor="Transparent"
                                    BorderColor="Transparent"
-                                   WidthRequest="40"
+                                   WidthRequest="30"
                                    HeightRequest="40"
                                    CornerRadius="20"
                                    Padding="0"

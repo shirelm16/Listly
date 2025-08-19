@@ -23,19 +23,38 @@ namespace Listly.Store
         [FirestoreProperty("lastModified")]
         public long LastModifiedUnix { get; set; }
 
-        public static ShoppingListDocument FromShoppingList(ShoppingList list, string ownerId) => new()
+        [FirestoreProperty("shareId")]
+        public string ShareId { get; set; }
+
+        [FirestoreProperty("shareExpiresAt")]
+        public long? ShareExpiresAtUnix { get; set; }
+
+        [FirestoreProperty("collaborators")]
+        public List<string> Collaborators { get; set; }
+
+        public static ShoppingListDocument FromShoppingList(ShoppingList list)
         {
-            Id = list.Id.ToString(),
-            OwnerId = ownerId,
-            Name = list.Name,
-            LastModifiedUnix = ((DateTimeOffset)list.LastModified).ToUnixTimeSeconds()
-        };
+            return new ShoppingListDocument()
+            {
+                Id = list.Id.ToString(),
+                OwnerId = list.OwnerId,
+                Name = list.Name,
+                LastModifiedUnix = ((DateTimeOffset)list.LastModified).ToUnixTimeSeconds(),
+                ShareId = list.ShareId,
+                ShareExpiresAtUnix = list.ShareExpiresAt == null ? null : ((DateTimeOffset)list.ShareExpiresAt).ToUnixTimeSeconds(),
+                Collaborators = list.Collaborators
+            };
+        }
 
         public ShoppingList ToShoppingList() => new()
         {
             Id = Guid.Parse(Id),
+            OwnerId = OwnerId,
             Name = Name,
-            LastModified = DateTimeOffset.FromUnixTimeSeconds(LastModifiedUnix).DateTime
+            LastModified = DateTimeOffset.FromUnixTimeSeconds(LastModifiedUnix).DateTime,
+            ShareId = ShareId,
+            ShareExpiresAt = ShareExpiresAtUnix == null ? null : DateTimeOffset.FromUnixTimeSeconds(ShareExpiresAtUnix.Value).DateTime,
+            Collaborators = Collaborators
         };
     }
 }

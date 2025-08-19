@@ -78,5 +78,11 @@ namespace Listly
         {
             return new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: true);
         }
+
+        static void HandleAppLink(string url)
+        {
+            if (Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var uri))
+                App.Current?.SendOnAppLinkRequestReceived(uri);
+        }
     }
 }

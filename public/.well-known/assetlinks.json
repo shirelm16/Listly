@@ -1,0 +1,12 @@
+[
+  {
+    "relation": [ "delegate_permission/common.handle_all_urls" ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.shirelm.listly",
+      "sha256_cert_fingerprints": [
+        "C5:F2:F4:99:4F:09:FD:59:5B:97:CD:85:A9:80:E0:60:17:5A:F6:85:BA:B9:5A:5D:19:79:CC:63:FD:E8:5F:89"
+      ]
+    }
+  }
+]

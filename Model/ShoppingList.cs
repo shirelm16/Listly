@@ -12,8 +12,6 @@ namespace Listly.Model
     {
         public Guid Id { get; set; }
 
-        public ObservableCollection<string> Collaborators { get; set; } = new();
-
         [ObservableProperty]
         string name;
 
@@ -26,6 +24,13 @@ namespace Listly.Model
         DateTime lastModified = DateTime.UtcNow;
 
         public DateTime LastModifiedLocal => LastModified.ToLocalTime();
+
+        public string OwnerId { get; set; }
+
+        public string ShareId { get; set; }
+        public DateTime? ShareExpiresAt { get; set; }
+        public List<string> Collaborators { get; set; } = new();
+        public bool IsShared => !string.IsNullOrEmpty(ShareId);
 
         public ShoppingList() { }
 

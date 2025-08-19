@@ -45,6 +45,16 @@ namespace Listly.ViewModel
         }
 
         [RelayCommand]
+        async Task ShareList(ShoppingList shoppingList)
+        {
+            if (shoppingList == null)
+                return;
+
+            var popup = new ShareShoppingListPopup(_shoppingListStore, shoppingList);
+            await MopupService.Instance.PushAsync(popup);
+        }
+
+        [RelayCommand]
         async Task DeleteList(ShoppingList shoppingList)
         {
             if (shoppingList == null)

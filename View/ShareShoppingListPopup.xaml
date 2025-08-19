@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mopups:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+             x:Class="Listly.View.ShareShoppingListPopup"
+             BackgroundColor="#80000000"
+             Padding="30">
+    <Frame BackgroundColor="{StaticResource Surface}"
+           CornerRadius="16"
+           Padding="20"
+           WidthRequest="300"
+           HeightRequest="300"
+           HasShadow="True">
+        <VerticalStackLayout Spacing="10">
+            <Label Text="Share Shopping List" 
+                   FontSize="18" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" />
+
+            <Entry x:Name="ShareLinkEntry" 
+                   Text="{Binding ShareLink}"
+                   IsReadOnly="True"
+                   Placeholder="Generating link..." />
+
+            <Button Text="Copy Link" 
+                    Command="{Binding CopyLinkCommand}" />
+
+            <Button Text="Share via..." 
+                    Command="{Binding ShareCommand}" />
+
+            <Button Text="Cancel" 
+                    Command="{Binding CancelCommand}" />
+        </VerticalStackLayout>
+    </Frame>
+</mopups:PopupPage>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mopups:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                  xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+                  x:Class="Listly.View.SharedShoppingListInvitationPopup"
+                  BackgroundColor="#80000000"
+                  Padding="30">
+
+    <Frame BackgroundColor="{StaticResource Surface}"
+       CornerRadius="16"
+       Padding="20"
+       WidthRequest="300"
+       HeightRequest="300"
+       HasShadow="True">
+        <VerticalStackLayout Spacing="10">
+            <Label Text="📋" 
+                   FontSize="48"
+                   HorizontalOptions="Center" />
+
+            <Label Text="You've been invited!" 
+                   FontSize="20" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" />
+
+            <Label Text="{Binding InvitationMessage}" 
+                   FontSize="16" 
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center" />
+
+            <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
+                <Button Text="Open List" 
+                        Command="{Binding OpenListCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        WidthRequest="120" />
+
+                <Button Text="Discard" 
+                        Command="{Binding DiscardCommand}"
+                        BackgroundColor="{StaticResource SurfaceVariant}"
+                        TextColor="Black"
+                        WidthRequest="120" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Frame>
+</mopups:PopupPage>
