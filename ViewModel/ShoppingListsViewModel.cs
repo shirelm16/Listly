@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Listly.Messages;
 using Listly.Model;
+using Listly.Service;
 using Listly.Store;
 using Listly.View;
 using Mopups.Services;
@@ -32,13 +33,13 @@ namespace Listly.ViewModel
             {
                 var list = m.Value;
                 list.LastModified = DateTime.UtcNow;
-                await _shoppingListStore.UpdateAsync(list);
+                await _shoppingListStore.UpdateShoppingListAsync(list);
             });
 
             WeakReferenceMessenger.Default.Register<ShoppingListCreatedMessage>(this, async (r, m) =>
             {
                 var list = m.Value;
-                await _shoppingListStore.CreateAsync(list);
+                await _shoppingListStore.CreateShoppingListAsync(list);
                 ShoppingLists.Add(list);
             });
         }
@@ -58,7 +59,7 @@ namespace Listly.ViewModel
             if (!confirmed)
                 return;
 
-            await _shoppingListStore.DeleteAsync(shoppingList.Id);
+            await _shoppingListStore.DeleteListAsync(shoppingList.Id);
             ShoppingLists.Remove(shoppingList);
         }
 
@@ -100,7 +101,7 @@ namespace Listly.ViewModel
             try
             {
                 IsBusy = true;
-                var shoppingLists = await _shoppingListStore.GetAllAsync();
+                var shoppingLists = await _shoppingListStore.GetAllShoppingListsAsync();
 
                 if (ShoppingLists.Count > 0)
                     ShoppingLists.Clear();

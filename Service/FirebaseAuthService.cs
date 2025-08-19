@@ -11,19 +11,12 @@ namespace Listly.Service
     public interface IAuthService
     {
         Task<string> GetCurrentUserIdAsync();
-        Task<bool> IsAuthenticatedAsync();
+        bool IsAuthenticated();
         Task SignInAnonymouslyAsync();
     }
 
     public class FirebaseAuthService : IAuthService
     {
-        private readonly IFirebaseAuth _auth;
-
-        public FirebaseAuthService(IFirebaseAuth auth)
-        {
-            _auth = auth;
-        }
-
         public async Task<string> GetCurrentUserIdAsync()
         {
             var user = CrossFirebaseAuth.Current.CurrentUser;
@@ -35,7 +28,7 @@ namespace Listly.Service
             return user?.Uid ?? string.Empty;
         }
 
-        public async Task<bool> IsAuthenticatedAsync()
+        public bool IsAuthenticated()
         {
             return CrossFirebaseAuth.Current.CurrentUser != null;
         }

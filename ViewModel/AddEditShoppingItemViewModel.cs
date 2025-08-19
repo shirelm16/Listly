@@ -125,7 +125,7 @@ namespace Listly.ViewModel
                 _shoppingItem.Name = trimmedName;
                 _shoppingItem.Quantity = Quantity;
 
-                await _shoppingItemStore.UpdateAsync(_shoppingItem);
+                await _shoppingItemStore.UpdateShoppingItemAsync(_shoppingItem);
                 WeakReferenceMessenger.Default.Send(new ShoppingItemUpdatedMessage(_shoppingItem));
             }
         }
@@ -134,7 +134,7 @@ namespace Listly.ViewModel
         {
             var shoppingItem = new ShoppingItem(ShoppingListId, trimmedName, Quantity);
 
-            await _shoppingItemStore.CreateAsync(shoppingItem);
+            await _shoppingItemStore.CreateShoppingItemAsync(shoppingItem);
             WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
         }
 

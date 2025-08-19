@@ -44,15 +44,9 @@ namespace Listly
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
-            builder.Services.AddSingleton<ISQLiteService, SQLiteService>(povider =>
-            {
-                var sqliteService = new SQLiteService();
-                Task.Run(async () => await sqliteService.InitializeAsync()).Wait();
-                return sqliteService;
-            });
 
-            builder.Services.AddSingleton<IShoppingListStore, ShoppingListStore>();
-            builder.Services.AddSingleton<IShoppingItemStore, ShoppingItemStore>();
+            builder.Services.AddSingleton<IShoppingListStore, FirestoreShoppingListStore>();
+            builder.Services.AddSingleton<IShoppingItemStore, FirestoreShoppingListStore>();
 
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddTransient<ShoppingListDetailsPage>();
@@ -77,7 +71,6 @@ namespace Listly
             builder.Services.AddSingleton(_ => CrossFirebaseAuth.Current);
             builder.Services.AddSingleton(_ => CrossFirebaseFirestore.Current);
             builder.Services.AddSingleton<IAuthService, FirebaseAuthService>();
-            //builder.Services.AddSingleton<FirestoreService>();
             return builder;
         }
 

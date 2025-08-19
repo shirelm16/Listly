@@ -77,7 +77,7 @@ namespace Listly.ViewModel
                 return;
 
             ShoppingList.Items.Remove(shoppingItem);
-            await _shoppingItemStore.DeleteAsync(shoppingItem.Id);
+            await _shoppingItemStore.DeleteShoppingItemAsync(shoppingItem.ShoppingListId, shoppingItem.Id);
             WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
         }
 
@@ -102,7 +102,7 @@ namespace Listly.ViewModel
         private async void ShoppingItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             var item = sender as ShoppingItem;
-            await _shoppingItemStore.UpdateAsync(item);
+            await _shoppingItemStore.UpdateShoppingItemAsync(item);
 
             WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
         }

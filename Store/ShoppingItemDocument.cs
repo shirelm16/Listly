@@ -1,5 +1,5 @@
-﻿using Google.Cloud.Firestore;
-using Listly.Model;
+﻿using Listly.Model;
+using Plugin.Firebase.Firestore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace Listly.Store
 {
-    [FirestoreData]
     public class ShoppingItemDocument
     {
         [FirestoreProperty("id")]
@@ -26,30 +25,23 @@ namespace Listly.Store
         [FirestoreProperty("isPurchased")]
         public bool IsPurchased { get; set; }
 
-        [FirestoreProperty("addedBy")]
-        public string AddedBy { get; set; }
 
-        public static ShoppingItemDocument FromShoppingItem(ShoppingItem item)
+        public static ShoppingItemDocument FromShoppingItem(ShoppingItem item) => new()
         {
-            return new ShoppingItemDocument
-            {
-                Id = item.Id.ToString(),
-                ShoppingListId = item.ShoppingListId.ToString(),
-                Name = item.Name,
-                Quantity = item.Quantity,
-                IsPurchased = item.IsPurchased,
-                AddedBy = item.AddedBy
-            };
-        }
+            Id = item.Id.ToString(),
+            ShoppingListId = item.ShoppingListId.ToString(),
+            Name = item.Name,
+            Quantity = item.Quantity,
+            IsPurchased = item.IsPurchased
+        };
 
-        public ShoppingItem ToShoppingItem()
+        public ShoppingItem ToShoppingItem() => new()
         {
-            return new ShoppingItem(Guid.Parse(ShoppingListId), Name, Quantity)
-            {
-                Id = Guid.Parse(Id),
-                IsPurchased = IsPurchased,
-                AddedBy = AddedBy
-            };
-        }
+            Id = Guid.Parse(Id),
+            ShoppingListId = Guid.Parse(ShoppingListId),
+            Name = Name,
+            Quantity = Quantity,
+            IsPurchased = IsPurchased
+        };
     }
 }

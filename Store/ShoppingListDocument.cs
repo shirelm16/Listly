@@ -1,6 +1,6 @@
-﻿using Google.Cloud.Firestore;
-using Java.Util;
+﻿
 using Listly.Model;
+using Plugin.Firebase.Firestore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,42 +9,33 @@ using System.Threading.Tasks;
 
 namespace Listly.Store
 {
-    [FirestoreData]
     public class ShoppingListDocument
     {
         [FirestoreProperty("id")]
         public string Id { get; set; }
 
-        [FirestoreProperty("owner_id")]
-        public string OwnerId { get; set; }
-
-        [FirestoreProperty("collaborators")]
-        public List<string> Collaborators { get; set; }
-
         [FirestoreProperty("name")]
         public string Name { get; set; }
 
+        [FirestoreProperty("ownerId")]
+        public string OwnerId { get; set; }
+
         [FirestoreProperty("lastModified")]
-        public Timestamp LastModified { get; set; }
+        public long LastModifiedUnix { get; set; }
 
-        public static ShoppingListDocument FromShoppingList(ShoppingList list)
+        public static ShoppingListDocument FromShoppingList(ShoppingList list, string ownerId) => new()
         {
-            return new ShoppingListDocument
-            {
-                Id = list.Id.ToString(),
-                OwnerId = list.OwnerId.ToString(),
-                Name = list.Name,
-                LastModified = Timestamp.FromDateTime(list.LastModified.ToUniversalTime())
-            };
-        }
+            Id = list.Id.ToString(),
+            OwnerId = ownerId,
+            Name = list.Name,
+            LastModifiedUnix = ((DateTimeOffset)list.LastModified).ToUnixTimeSeconds()
+        };
 
-        public ShoppingList ToShoppingList()
+        public ShoppingList ToShoppingList() => new()
         {
-            return new ShoppingList(Name, OwnerId)
-            {
-                Id = Guid.Parse(Id),
-                LastModified = LastModified.ToDateTime()
-            };
-        }
+            Id = Guid.Parse(Id),
+            Name = Name,
+            LastModified = DateTimeOffset.FromUnixTimeSeconds(LastModifiedUnix).DateTime
+        };
     }
 }

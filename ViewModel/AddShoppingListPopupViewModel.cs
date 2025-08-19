@@ -17,9 +17,6 @@ namespace Listly.ViewModel
         [ObservableProperty]
         private string name;
 
-        [ObservableProperty]
-        private string ownerId;
-
         public bool CanAdd => !string.IsNullOrWhiteSpace(Name?.Trim());
 
         public AddShoppingListPopupViewModel()
@@ -46,7 +43,7 @@ namespace Listly.ViewModel
                 return;
             }
 
-            var shoppingList = new ShoppingList(trimmedName, OwnerId);
+            var shoppingList = new ShoppingList(trimmedName);
 
             WeakReferenceMessenger.Default.Send(new ShoppingListCreatedMessage(shoppingList));
 
