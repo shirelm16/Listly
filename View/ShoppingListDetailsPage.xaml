@@ -53,10 +53,16 @@
                                 <Label Text="{Binding Name}"
                                        FontSize="16"
                                        TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
-                                <Label Text="{Binding Quantity, StringFormat='Qty: {0}'}"
-                                       FontSize="14"
+                                <Label FontSize="14"
                                        TextColor="{StaticResource OnSurfaceVariant}"
-                                       IsVisible="{Binding Quantity, Converter={StaticResource NullOrEmptyToBoolConverter}}"/>
+                                       IsVisible="{Binding Quantity, Converter={StaticResource NullOrEmptyToBoolConverter}}">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="Qty: {0}{1}">
+                                            <Binding Path="Quantity" />
+                                            <Binding Path="Unit" />
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
                             </StackLayout>
                             <Frame Grid.Column="2"
                                    BackgroundColor="Transparent"

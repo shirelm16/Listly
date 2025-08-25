@@ -30,14 +30,17 @@ namespace Listly.ViewModel
         string name;
 
         [ObservableProperty]
-        int? quantity;
+        double? quantity;
+
+        [ObservableProperty]
+        string? unit;
 
         public bool HasChanges
         {
             get
             {
                 return !string.Equals(_shoppingItem?.Name, Name?.Trim(), StringComparison.Ordinal) ||
-                       _shoppingItem?.Quantity != Quantity;
+                       _shoppingItem?.Quantity != Quantity || _shoppingItem?.Unit != Unit;
             }
         }
 
@@ -48,6 +51,7 @@ namespace Listly.ViewModel
             ShoppingListId = shoppingListId;
             Name = shoppingItem?.Name;
             Quantity = shoppingItem?.Quantity;
+            Unit = shoppingItem?.Unit;
             Title = IsEditMode ? "Edit Item" : "Add Item";
         }
 
@@ -87,9 +91,9 @@ namespace Listly.ViewModel
                     return;
                 }
 
-                if (Quantity.HasValue && (Quantity.Value < 1 || Quantity.Value > 999))
+                if (Quantity.HasValue && Quantity.Value <= 0)
                 {
-                    await Shell.Current.DisplayAlert("Invalid Quantity", "Quantity must be between 1 and 999.", "OK");
+                    await Shell.Current.DisplayAlert("Invalid Quantity", "Quantity must be greater than 0.", "OK");
                     return;
                 }
 
@@ -118,12 +122,13 @@ namespace Listly.ViewModel
                 return;
 
             var hasNameChanged = !string.Equals(_shoppingItem.Name, trimmedName, StringComparison.Ordinal);
-            var hasQuantityChanged = _shoppingItem.Quantity != Quantity;
+            var hasQuantityChanged = _shoppingItem.Quantity != Quantity || _shoppingItem.Unit != Unit;
 
             if (hasNameChanged || hasQuantityChanged)
             {
                 _shoppingItem.Name = trimmedName;
                 _shoppingItem.Quantity = Quantity;
+                _shoppingItem.Unit = Unit;
 
                 await _shoppingItemStore.UpdateShoppingItemAsync(_shoppingItem);
                 WeakReferenceMessenger.Default.Send(new ShoppingItemUpdatedMessage(_shoppingItem));
@@ -132,7 +137,7 @@ namespace Listly.ViewModel
 
         private async Task CreateNewItem(string trimmedName)
         {
-            var shoppingItem = new ShoppingItem(ShoppingListId, trimmedName, Quantity);
+            var shoppingItem = new ShoppingItem(ShoppingListId, trimmedName, Quantity, Unit);
 
             await _shoppingItemStore.CreateShoppingItemAsync(shoppingItem);
             WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
@@ -145,7 +150,14 @@ namespace Listly.ViewModel
             SaveCommand.NotifyCanExecuteChanged();
         }
 
-        partial void OnQuantityChanged(int? value)
+        partial void OnQuantityChanged(double? value)
+        {
+            OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(HasChanges));
+            SaveCommand.NotifyCanExecuteChanged();
+        }
+
+        partial void OnUnitChanged(string? value)
         {
             OnPropertyChanged(nameof(CanSave));
             OnPropertyChanged(nameof(HasChanges));

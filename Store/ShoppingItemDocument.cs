@@ -20,7 +20,10 @@ namespace Listly.Store
         public string Name { get; set; }
 
         [FirestoreProperty("quantity")]
-        public int? Quantity { get; set; }
+        public double? Quantity { get; set; }
+
+        [FirestoreProperty("unit")]
+        public string? Unit { get; set; }
 
         [FirestoreProperty("isPurchased")]
         public bool IsPurchased { get; set; }
@@ -32,6 +35,7 @@ namespace Listly.Store
             ShoppingListId = item.ShoppingListId.ToString(),
             Name = item.Name,
             Quantity = item.Quantity,
+            Unit = item.Unit,
             IsPurchased = item.IsPurchased
         };
 
@@ -41,6 +45,7 @@ namespace Listly.Store
             ShoppingListId = Guid.Parse(ShoppingListId),
             Name = Name,
             Quantity = Quantity,
+            Unit = Unit,
             IsPurchased = IsPurchased
         };
     }

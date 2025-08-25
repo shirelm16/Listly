@@ -11,7 +11,7 @@
             Margin="20"
             VerticalOptions="Center"
             HorizontalOptions="Center"
-            WidthRequest="340"
+            WidthRequest="380"
             StrokeShape="RoundRectangle 20">
         <Border.Shadow>
             <Shadow Brush="Black" Opacity="0.25" Radius="24" Offset="0,8"/>
@@ -50,7 +50,7 @@
                        FontAttributes="Bold"
                        TextColor="{StaticResource OnSurface}"/>
 
-                <Grid ColumnDefinitions="*,60,60" ColumnSpacing="12">
+                <Grid ColumnDefinitions="*,*,56,56" ColumnSpacing="10">
                     <Border Grid.Column="0"
                             Stroke="{StaticResource Outline}"
                             StrokeThickness="1"
@@ -63,10 +63,25 @@
                                TextColor="{StaticResource OnSurface}"
                                PlaceholderColor="{StaticResource OnSurfaceVariant}"
                                VerticalOptions="Center"
-                               Margin="16,0"/>
+                               Margin="10,0"/>
                     </Border>
 
-                    <Button Grid.Column="1"
+                    <Border Grid.Column="1"
+                            Stroke="{StaticResource Outline}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource Surface}"
+                            StrokeShape="RoundRectangle 12"
+                            HeightRequest="56">
+                        <Entry Text="{Binding Unit, Mode=TwoWay}"
+                               Placeholder="Unit"
+                               FontSize="16"
+                               TextColor="{StaticResource OnSurface}"
+                               PlaceholderColor="{StaticResource OnSurfaceVariant}"
+                               VerticalOptions="Center"
+                               Margin="10,0"/>
+                    </Border>
+
+                    <Button Grid.Column="2"
                             Text="−"
                             Command="{Binding DecreaseQuantityCommand}"
                             BackgroundColor="{StaticResource SurfaceVariant}"
@@ -77,7 +92,7 @@
                             FontSize="20"
                             FontAttributes="Bold"/>
 
-                    <Button Grid.Column="2"
+                    <Button Grid.Column="3"
                             Text="+"
                             Command="{Binding IncreaseQuantityCommand}"
                             BackgroundColor="{StaticResource Primary}"
@@ -115,7 +130,7 @@
     </Border>
     <ContentPage.Resources>
         <ResourceDictionary>
-            <converters:NullableIntConverter x:Key="NullableIntConverter" />
+            <converters:NullableDoubleConverter x:Key="NullableDoubleConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
 </mopups:PopupPage>

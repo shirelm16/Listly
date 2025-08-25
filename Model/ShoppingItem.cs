@@ -18,19 +18,23 @@ namespace Listly.Model
         string name;
 
         [ObservableProperty]
-        int? quantity;
+        double? quantity;
+
+        [ObservableProperty]
+        string? unit;
 
         [ObservableProperty]
         bool isPurchased;
 
         public ShoppingItem() { }
 
-        public ShoppingItem(Guid shoppingListId, string name, int? quantity)
+        public ShoppingItem(Guid shoppingListId, string name, double? quantity, string? unit)
         {
             Id = Guid.NewGuid();
             ShoppingListId = shoppingListId;
             Name = name;
             Quantity = quantity;
+            Unit = unit;
         }
     }
 }
