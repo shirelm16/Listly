@@ -66,6 +66,10 @@
                                 <Label Text="{Binding LastModifiedLocal, StringFormat='Updated {0:MMM dd HH:mm}'}"
                                        FontSize="12"
                                        TextColor="{StaticResource OnSurfaceVariant}"/>
+                                <Label Text="Shared"
+                                       FontSize="12"
+                                       TextColor="#2196F3"
+                                       IsVisible="{Binding IsCollaborated}" />
                             </StackLayout>
 
                             <Frame Grid.Column="1"

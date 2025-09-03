@@ -45,6 +45,7 @@ namespace Listly.Store
                 throw new InvalidOperationException("User must be authenticated");
 
             shoppingList.OwnerId = currentUserId;
+            shoppingList.LastModifiedUser = currentUserId;
             var doc = ShoppingListDocument.FromShoppingList(shoppingList);
             var docRef = _collection.GetDocument(shoppingList.Id.ToString());
 
@@ -114,6 +115,7 @@ namespace Listly.Store
             if (string.IsNullOrEmpty(currentUserId))
                 throw new InvalidOperationException("User must be authenticated");
 
+            shoppingList.LastModifiedUser = currentUserId;
             var doc = ShoppingListDocument.FromShoppingList(shoppingList);
             var docRef = _collection.GetDocument(shoppingList.Id.ToString());
 

@@ -13,6 +13,7 @@ using Mopups.Hosting;
 using Plugin.Firebase.Auth;
 using Plugin.Firebase.Bundled.Shared;
 using Plugin.Firebase.Firestore;
+using Plugin.Firebase.CloudMessaging;
 
 namespace Listly
 {
@@ -47,6 +48,7 @@ namespace Listly
 
             builder.Services.AddSingleton<IShoppingListStore, FirestoreShoppingListStore>();
             builder.Services.AddSingleton<IShoppingItemStore, FirestoreShoppingListStore>();
+            builder.Services.AddSingleton<IUsersStore, FirestoreUsersStore>();
 
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddTransient<ShoppingListDetailsPage>();
@@ -70,19 +72,14 @@ namespace Listly
 
             builder.Services.AddSingleton(_ => CrossFirebaseAuth.Current);
             builder.Services.AddSingleton(_ => CrossFirebaseFirestore.Current);
+            builder.Services.AddSingleton(_ => CrossFirebaseCloudMessaging.Current);
             builder.Services.AddSingleton<IAuthService, FirebaseAuthService>();
             return builder;
         }
 
         private static CrossFirebaseSettings CreateCrossFirebaseSettings()
         {
-            return new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: true);
-        }
-
-        static void HandleAppLink(string url)
-        {
-            if (Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out var uri))
-                App.Current?.SendOnAppLinkRequestReceived(uri);
+            return new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: true, isCloudMessagingEnabled: true);
         }
     }
 }

@@ -24,13 +24,14 @@ namespace Listly.Model
         DateTime lastModified = DateTime.UtcNow;
 
         public DateTime LastModifiedLocal => LastModified.ToLocalTime();
-
+        public string LastModifiedUser { get; set; }
         public string OwnerId { get; set; }
-
+        
         public string ShareId { get; set; }
         public DateTime? ShareExpiresAt { get; set; }
         public List<string> Collaborators { get; set; } = new();
         public bool IsShared => !string.IsNullOrEmpty(ShareId);
+        public bool IsCollaborated => Collaborators.Any();
 
         public ShoppingList() { }
 

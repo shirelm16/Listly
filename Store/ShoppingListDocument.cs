@@ -22,6 +22,9 @@ namespace Listly.Store
 
         [FirestoreProperty("lastModified")]
         public long LastModifiedUnix { get; set; }
+        
+        [FirestoreProperty("lastModifiedUser")]
+        public string LastModifiedUser { get; set; }
 
         [FirestoreProperty("shareId")]
         public string ShareId { get; set; }
@@ -40,6 +43,7 @@ namespace Listly.Store
                 OwnerId = list.OwnerId,
                 Name = list.Name,
                 LastModifiedUnix = ((DateTimeOffset)list.LastModified).ToUnixTimeSeconds(),
+                LastModifiedUser = list.LastModifiedUser,
                 ShareId = list.ShareId,
                 ShareExpiresAtUnix = list.ShareExpiresAt == null ? null : ((DateTimeOffset)list.ShareExpiresAt).ToUnixTimeSeconds(),
                 Collaborators = list.Collaborators
@@ -52,6 +56,7 @@ namespace Listly.Store
             OwnerId = OwnerId,
             Name = Name,
             LastModified = DateTimeOffset.FromUnixTimeSeconds(LastModifiedUnix).DateTime,
+            LastModifiedUser = LastModifiedUser,
             ShareId = ShareId,
             ShareExpiresAt = ShareExpiresAtUnix == null ? null : DateTimeOffset.FromUnixTimeSeconds(ShareExpiresAtUnix.Value).DateTime,
             Collaborators = Collaborators
