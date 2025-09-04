@@ -1,6 +1,7 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.OS;
+using Android.Runtime;
 using AndroidX.Core.App;
 using Firebase.Messaging;
 using System;
@@ -12,7 +13,8 @@ using System.Threading.Tasks;
 namespace Listly.Platforms.Android
 {
     [Service(Exported = true)]
-    [IntentFilter(new[] { "com.google.firebase.MESSAGING_EVENT" })]
+    [IntentFilter(new[] { "com.google.firebase.MESSAGING_EVENT" }, Priority = 1000)]
+    [Register("com.shirelm.listly.MyFirebaseMessagingService")]
     public class MyFirebaseMessagingService : FirebaseMessagingService
     {
         public override void OnMessageReceived(RemoteMessage message)
@@ -39,7 +41,7 @@ namespace Listly.Platforms.Android
                 PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
 
             var notificationBuilder = new NotificationCompat.Builder(this, channelId)
-                .SetSmallIcon(Resource.Drawable.notification_icon_background)
+                .SetSmallIcon(Microsoft.Maui.Resource.Drawable.ic_notification)
                 .SetContentTitle(title)
                 .SetContentText(body)
                 .SetAutoCancel(true)

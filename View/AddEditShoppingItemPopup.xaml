@@ -57,7 +57,7 @@
                             BackgroundColor="{StaticResource Surface}"
                             StrokeShape="RoundRectangle 12"
                             HeightRequest="56">
-                        <Entry Text="{Binding Quantity, Mode=TwoWay, Converter={StaticResource NullableIntConverter}}"
+                        <Entry Text="{Binding Quantity, Mode=TwoWay, Converter={StaticResource NullableDoubleConverter}}"
                                Placeholder="Quantity"
                                FontSize="16"
                                TextColor="{StaticResource OnSurface}"
