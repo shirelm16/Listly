@@ -55,7 +55,7 @@ namespace Listly.Store
             Id = Guid.Parse(Id),
             OwnerId = OwnerId,
             Name = Name,
-            LastModified = DateTimeOffset.FromUnixTimeSeconds(LastModifiedUnix).DateTime,
+            LastModified = DateTimeOffset.FromUnixTimeSeconds(LastModifiedUnix).UtcDateTime,
             LastModifiedUser = LastModifiedUser,
             ShareId = ShareId,
             ShareExpiresAt = ShareExpiresAtUnix == null ? null : DateTimeOffset.FromUnixTimeSeconds(ShareExpiresAtUnix.Value).DateTime,

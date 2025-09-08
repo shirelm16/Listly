@@ -35,6 +35,7 @@ namespace Listly.ViewModel
             if (!string.IsNullOrEmpty(ShareLink) && ShareLink != "Generating link...")
             {
                 await Clipboard.SetTextAsync(ShareLink);
+                await MopupService.Instance.PopAsync();
             }
         }
 
