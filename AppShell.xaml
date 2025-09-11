@@ -4,9 +4,26 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:view="clr-namespace:Listly.View"
-    Shell.FlyoutBehavior="Disabled">
+    Shell.FlyoutBehavior="Disabled"
+    Shell.TabBarBackgroundColor="{StaticResource Surface}"
+    Shell.TabBarForegroundColor="{StaticResource Primary}"
+    Shell.TabBarTitleColor="{StaticResource Primary}"
+    Shell.TabBarUnselectedColor="{StaticResource OnSurfaceVariant}"
+    Shell.TabBarIsVisible="True"
+    Shell.NavBarIsVisible="False">
 
-    <ShellContent ContentTemplate="{DataTemplate view:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <!-- Lists Tab -->
+        <ShellContent
+            Title="Lists"
+            Icon="lists.png"
+            ContentTemplate="{DataTemplate view:MainPage}"/>
+
+        <!-- Profile Tab -->
+        <ShellContent
+            Title="Profile"
+            Icon="profile.svg"
+            ContentTemplate="{DataTemplate view:ProfilePage}" />
+    </TabBar>
 
 </Shell>

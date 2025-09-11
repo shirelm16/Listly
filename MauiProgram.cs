@@ -14,6 +14,9 @@ using Plugin.Firebase.Auth;
 using Plugin.Firebase.Bundled.Shared;
 using Plugin.Firebase.Firestore;
 using Plugin.Firebase.CloudMessaging;
+using Plugin.Firebase.Auth.Google;
+using Plugin.Firebase.Auth.Facebook;
+using Xamarin.Facebook;
 
 namespace Listly
 {
@@ -51,10 +54,11 @@ namespace Listly
             builder.Services.AddSingleton<IUsersStore, FirestoreUsersStore>();
 
             builder.Services.AddSingleton<MainPage>();
+            builder.Services.AddSingleton<ProfilePage>();
             builder.Services.AddTransient<ShoppingListDetailsPage>();
             builder.Services.AddSingleton<ShoppingListsViewModel>();
+            builder.Services.AddSingleton<ProfileViewModel>();
             builder.Services.AddScoped<ShoppingListDetailsViewModel>();
-
 
             return builder.Build();
         }
@@ -71,15 +75,18 @@ namespace Listly
             });
 
             builder.Services.AddSingleton(_ => CrossFirebaseAuth.Current);
+            builder.Services.AddSingleton(_ => CrossFirebaseAuthGoogle.Current);
+            builder.Services.AddSingleton(_ => CrossFirebaseAuthFacebook.Current);
             builder.Services.AddSingleton(_ => CrossFirebaseFirestore.Current);
             builder.Services.AddSingleton(_ => CrossFirebaseCloudMessaging.Current);
             builder.Services.AddSingleton<IAuthService, FirebaseAuthService>();
+            FirebaseAuthGoogleImplementation.Initialize(Consts.WebClientId);
             return builder;
         }
 
         private static CrossFirebaseSettings CreateCrossFirebaseSettings()
         {
-            return new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: true, isCloudMessagingEnabled: true);
+            return new CrossFirebaseSettings(isAuthEnabled: true, isFirestoreEnabled: true, isCloudMessagingEnabled: true, googleRequestIdToken: Consts.WebClientId);
         }
     }
 }

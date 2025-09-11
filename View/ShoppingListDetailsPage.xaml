@@ -6,7 +6,9 @@
              xmlns:viewmodel="clr-namespace:Listly.ViewModel"
              x:DataType="viewmodel:ShoppingListDetailsViewModel"
              xmlns:converters="clr-namespace:Listly.Converters"
-             BackgroundColor="{StaticResource Background}">
+             BackgroundColor="{StaticResource Background}"
+             Shell.NavBarIsVisible="True"
+             Shell.TabBarIsVisible="False">
     <Grid RowDefinitions="Auto,*,Auto">
         <!-- Header with List Name -->
         <Border Grid.Row="0" 

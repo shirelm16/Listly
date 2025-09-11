@@ -42,8 +42,13 @@ namespace Listly
 
         private async Task InitializeUserAsync(IAuthService authService)
         {
-            await authService.SignInAnonymouslyAsync();
             var userId = await authService.GetCurrentUserIdAsync();
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                await authService.SignInAnonymouslyAsync();
+                userId = await authService.GetCurrentUserIdAsync();
+            }
 
             var existingUser = await _usersStore.GetUser(userId);
             if (existingUser == null)

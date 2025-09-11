@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mopups:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                 xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+                 x:Class="Listly.View.SignInProvidersPopup"
+                 BackgroundColor="#80000000">
+    <Border BackgroundColor="{StaticResource Surface}"
+        StrokeThickness="0"
+        Padding="24"
+        Margin="20"
+        VerticalOptions="Center"
+        HorizontalOptions="Center"
+        WidthRequest="380"
+        StrokeShape="RoundRectangle 20">
+        <Border.Shadow>
+            <Shadow Brush="Black" Opacity="0.25" Radius="24" Offset="0,8"/>
+        </Border.Shadow>
+        <VerticalStackLayout Spacing="12">
+            <Label Text="Sign in with:"
+                   FontSize="20"
+                   HorizontalOptions="Center" />
+
+            <!-- Loading indicator -->
+            <ActivityIndicator IsVisible="{Binding IsLoading}" 
+                              IsRunning="{Binding IsLoading}"
+                              Color="{StaticResource Primary}" />
+
+            <Button Text="Continue with Google"
+                    BackgroundColor="#DB4437"
+                    TextColor="White"
+                    Command="{Binding SignInWithGoogleCommand}"
+                    IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}" />
+
+            <Button Text="Continue with Facebook"
+                    BackgroundColor="#4267B2"
+                    TextColor="White"
+                    Command="{Binding SignInWithFacebookCommand}"
+                    IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}" />
+
+            <Button Text="Cancel"
+                    BackgroundColor="Transparent"
+                    TextColor="{StaticResource OnSurface}"
+                    BorderColor="{StaticResource Outline}"
+                    BorderWidth="1"
+                    Command="{Binding CancelCommand}"
+                    IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}" />
+        </VerticalStackLayout>
+    </Border>
+</mopups:PopupPage>

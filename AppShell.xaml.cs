@@ -9,6 +9,7 @@ namespace Listly
             InitializeComponent();
 
             Routing.RegisterRoute(nameof(ShoppingListDetailsPage), typeof(ShoppingListDetailsPage));
+            Routing.RegisterRoute(nameof(ProfilePage), typeof(ProfilePage));
         }
     }
 }

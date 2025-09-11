@@ -1,0 +1,37 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:Listly.ViewModel"
+             x:Class="Listly.View.ProfilePage"
+             BackgroundColor="{StaticResource Background}">
+    <StackLayout Padding="20" VerticalOptions="Start" HorizontalOptions="Center" Spacing="20" Margin="0,50,0,0">
+        <Label Text="{Binding WelcomeText}"
+               FontSize="20"
+               FontAttributes="Bold"
+               TextColor="{StaticResource OnSurface}"/>
+
+        <!-- Loading indicator -->
+        <ActivityIndicator IsVisible="{Binding IsLoading}" 
+                          IsRunning="{Binding IsLoading}"
+                          Color="{StaticResource Primary}" />
+
+        <!-- Sign in button for anonymous users -->
+        <Button Text="Sign in"
+                Command="{Binding ShowProvidersActionCommand}"
+                BackgroundColor="{StaticResource Primary}"
+                TextColor="{StaticResource OnPrimary}"
+                CornerRadius="8"
+                Padding="10"
+                IsVisible="{Binding IsSignedOut}"
+                IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}" />
+
+        <!-- Log out button for signed in users -->
+        <Button Text="Log out"
+                Command="{Binding LogOutCommand}"
+                BackgroundColor="{StaticResource SurfaceVariant}"
+                TextColor="{StaticResource OnSurface}"
+                CornerRadius="8"
+                Padding="10"
+                IsVisible="{Binding IsSignedIn}"
+                IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}" />
+    </StackLayout>
+</ContentPage>

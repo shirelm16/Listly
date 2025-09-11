@@ -23,12 +23,18 @@
                    Placeholder="Generating link..." />
 
             <Button Text="Copy Link" 
-                    Command="{Binding CopyLinkCommand}" />
+                    Command="{Binding CopyLinkCommand}" 
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="{StaticResource OnPrimary}"/>
 
             <Button Text="Share via..." 
-                    Command="{Binding ShareCommand}" />
+                    Command="{Binding ShareCommand}" 
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="{StaticResource OnPrimary}"/>
 
-            <Button Text="Cancel" 
+            <Button Text="Cancel"
+                    TextColor="{StaticResource OnSurface}"
+                    BackgroundColor="{StaticResource SurfaceVariant}"
                     Command="{Binding CancelCommand}" />
         </VerticalStackLayout>
     </Frame>
