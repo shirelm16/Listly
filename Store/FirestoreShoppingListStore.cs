@@ -155,8 +155,11 @@ namespace Listly.Store
             if (string.IsNullOrEmpty(user?.Uid))
                 throw new InvalidOperationException("User must be authenticated");
 
-            shoppingList.Collaborators.Add(user.Uid);
-            await UpdateShoppingListAsync(shoppingList);
+            if (shoppingList.OwnerId != user.Uid && !shoppingList.Collaborators.Contains(user.Uid))
+            {
+                shoppingList.Collaborators.Add(user.Uid);
+                await UpdateShoppingListAsync(shoppingList);
+            }
         }
 
         private async Task<ShoppingList> GetShoppingListWithItems(IDocumentSnapshot<ShoppingListDocument> doc)
