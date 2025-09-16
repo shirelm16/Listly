@@ -1,10 +1,8 @@
-﻿using Listly.Service;
-using Listly.Store;
+﻿using Listly.Store;
 using Listly.View;
-using Listly.ViewModel;
 using Mopups.Services;
+using Plugin.Firebase.Auth;
 using Plugin.Firebase.CloudMessaging;
-using System.Diagnostics;
 
 namespace Listly
 {
@@ -12,22 +10,17 @@ namespace Listly
     {
         private readonly IShoppingListStore _shoppingListsStore;
         private readonly IUsersStore _usersStore;
+        private readonly IFirebaseAuth _auth;
 
-        public App(IAuthService authService, IShoppingListStore shoppingListsStore, IUsersStore usersStore)
+        public App(IFirebaseAuth auth, IShoppingListStore shoppingListsStore, IUsersStore usersStore)
         {
             InitializeComponent();
             _shoppingListsStore = shoppingListsStore;
             _usersStore = usersStore;
+            _auth = auth;
             MainPage = new AppShell();
 
-            CrossFirebaseCloudMessaging.Current.TokenChanged += async (s, newToken) =>
-            {
-                var userId = await authService.GetCurrentUserIdAsync();
-                if (userId != null)
-                {
-                    await _usersStore.UpdateDeviceToken(userId, newToken.Token);
-                }
-            };
+            Task.Run(InitializeUserAsync);
         }
 
         protected override async void OnAppLinkRequestReceived(Uri uri)
@@ -45,6 +38,34 @@ namespace Listly
         {
             var popup = new SharedShoppingListInvitationPopup(_shoppingListsStore, shareId);
             await MopupService.Instance.PushAsync(popup);
+        }
+
+        private async Task InitializeUserAsync()
+        {
+            var user = _auth.CurrentUser;
+
+            if (user == null)
+            {
+                user = await _auth.SignInAnonymouslyAsync();
+            }
+
+            var existingUser = await _usersStore.GetUser(user.Uid);
+            if (existingUser == null)
+            {
+                await _usersStore.CreateUser(user.Uid);
+            }
+
+            if (!user.IsAnonymous)
+            {
+                CrossFirebaseCloudMessaging.Current.TokenChanged += async (s, newToken) =>
+                {
+                    var user = _auth.CurrentUser;
+                    if (user != null)
+                    {
+                        await _usersStore.UpdateDeviceToken(user.Uid, newToken.Token);
+                    }
+                };
+            }
         }
     }
 }

@@ -21,6 +21,9 @@ namespace Listly.ViewModel
         [ObservableProperty]
         string invitationMessage = "Loading invitation...";
 
+        [ObservableProperty]
+        bool isValidLink;
+
         public SharedShoppingListInvitationViewModel(IShoppingListStore store, string shareId)
         {
             _store = store;
@@ -38,10 +41,12 @@ namespace Listly.ViewModel
                 if (_sharedList?.IsShared == true && _sharedList.ShareExpiresAt > DateTime.UtcNow)
                 {
                     InvitationMessage = $"List \"{_sharedList.Name}\" was shared with you!";
+                    IsValidLink = true;
                 }
                 else
                 {
                     InvitationMessage = "This invitation has expired or is no longer valid.";
+                    IsValidLink = false;
                 }
             }
             catch (Exception ex)

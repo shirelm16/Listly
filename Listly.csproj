@@ -72,6 +72,7 @@
   </ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="google-services.json" />
 	  <None Remove="Platforms\Android\Resources\values\Strings.xml" />
 	</ItemGroup>
 

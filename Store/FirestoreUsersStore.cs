@@ -1,5 +1,4 @@
 ﻿using Listly.Model;
-using Listly.Service;
 using Plugin.Firebase.Firestore;
 using System;
 using System.Collections.Generic;
@@ -11,6 +10,7 @@ namespace Listly.Store
 {
     public interface IUsersStore
     {
+        public Task CreateUser(string userId);
         public Task CreateOrUpdateUser(User user);
         public Task<UserDocument> GetUser(string userId);
         public Task UpdateDeviceToken(string userId, string token);
@@ -35,6 +35,15 @@ namespace Listly.Store
                 userDoc.DeviceToken = token;
                 await userDocRef.SetDataAsync(userDoc);
             }
+        }
+
+        public async Task CreateUser(string userId)
+        {
+            var userDoc = new UserDocument
+            {
+                Id = userId,
+            };
+            await _collection.GetDocument(userId).SetDataAsync(userDoc);
         }
 
         public async Task CreateOrUpdateUser(User user)

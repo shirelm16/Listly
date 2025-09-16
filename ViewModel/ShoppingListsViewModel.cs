@@ -48,9 +48,10 @@ namespace Listly.ViewModel
                 return;
 
             var currentuser = _auth.CurrentUser;
-            if(currentuser == null)
+            if(currentuser == null || currentuser.IsAnonymous)
             {
                 await Shell.Current.DisplayAlert("Sign in required", "You must sign in to share lists.", "OK");
+                return;
             }
 
             var popup = new ShareShoppingListPopup(_shoppingListStore, shoppingList);

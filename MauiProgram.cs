@@ -1,5 +1,4 @@
-﻿using Listly.Service;
-using Listly.Store;
+﻿using Listly.Store;
 using Listly.View;
 using Listly.ViewModel;
 using Microsoft.Extensions.Logging;
@@ -79,7 +78,6 @@ namespace Listly
             builder.Services.AddSingleton(_ => CrossFirebaseAuthFacebook.Current);
             builder.Services.AddSingleton(_ => CrossFirebaseFirestore.Current);
             builder.Services.AddSingleton(_ => CrossFirebaseCloudMessaging.Current);
-            builder.Services.AddSingleton<IAuthService, FirebaseAuthService>();
             FirebaseAuthGoogleImplementation.Initialize(Consts.WebClientId);
             return builder;
         }

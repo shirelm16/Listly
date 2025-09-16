@@ -32,7 +32,8 @@
                         Command="{Binding OpenListCommand}"
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="White"
-                        WidthRequest="120" />
+                        WidthRequest="120"
+                        IsVisible="{Binding IsValidLink}"/>
 
                 <Button Text="Discard" 
                         Command="{Binding DiscardCommand}"

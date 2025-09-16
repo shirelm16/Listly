@@ -45,7 +45,7 @@ namespace Listly.ViewModel
         private void UpdateUserState()
         {
             var user = _auth.CurrentUser;
-            if (user != null)
+            if (user != null && !user.IsAnonymous)
             {
                 WelcomeText = $"Welcome {user.DisplayName ?? user.Email ?? "User"}!";
                 IsSignedIn = true;
@@ -149,6 +149,7 @@ namespace Listly.ViewModel
             try
             {
                 await _auth.SignOutAsync();
+                await _auth.SignInAnonymouslyAsync();
                 UpdateUserState();
             }
             catch (Exception ex)
@@ -167,31 +168,6 @@ namespace Listly.ViewModel
         private async Task Cancel()
         {
             await MopupService.Instance.PopAsync();
-        }
-
-        [RelayCommand]
-        public async Task ForceSignOutAndRetry()
-        {
-            try
-            {
-                // Nuclear option - completely reset everything
-                await _auth.SignOutAsync();
-                await Task.Delay(3000); // Wait longer
-
-                // Clear any cached credentials (platform specific)
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-
-                // Start fresh
-                await _auth.SignInAnonymouslyAsync();
-                UpdateUserState();
-
-                await Application.Current.MainPage.DisplayAlert("Reset", "Ready to try Google sign-in again", "OK");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Force reset error: {ex.Message}");
-            }
         }
 
         private async Task CreateOrUpdateUserInDb()

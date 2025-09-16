@@ -1,5 +1,5 @@
 ﻿using Listly.Model;
-using Listly.Service;
+using Plugin.Firebase.Auth;
 using Plugin.Firebase.Firestore;
 using System;
 using System.Collections.Generic;
@@ -29,23 +29,23 @@ namespace Listly.Store
     public class FirestoreShoppingListStore : IShoppingListStore, IShoppingItemStore
     {
         private readonly ICollectionReference _collection;
-        private IAuthService _authService;
+        private IFirebaseAuth _auth;
 
-        public FirestoreShoppingListStore(IAuthService authService)
+        public FirestoreShoppingListStore(IFirebaseAuth auth)
         {
-            _authService = authService;
+            _auth = auth;
             _collection = CrossFirebaseFirestore.Current.GetCollection("shoppingLists");
         }
 
         public async Task CreateShoppingListAsync(ShoppingList shoppingList)
         {
-            var currentUserId = await _authService.GetCurrentUserIdAsync();
+            var user = _auth.CurrentUser;
             
-            if (string.IsNullOrEmpty(currentUserId))
+            if (string.IsNullOrEmpty(user?.Uid))
                 throw new InvalidOperationException("User must be authenticated");
 
-            shoppingList.OwnerId = currentUserId;
-            shoppingList.LastModifiedUser = currentUserId;
+            shoppingList.OwnerId = user.Uid;
+            shoppingList.LastModifiedUser = user.Uid;
             var doc = ShoppingListDocument.FromShoppingList(shoppingList);
             var docRef = _collection.GetDocument(shoppingList.Id.ToString());
 
@@ -80,16 +80,16 @@ namespace Listly.Store
 
         public async Task<List<ShoppingList>> GetAllShoppingListsAsync()
         {
-            var currentUserId = await _authService.GetCurrentUserIdAsync();
-            if (string.IsNullOrEmpty(currentUserId))
+            var user = _auth.CurrentUser;
+            if (string.IsNullOrEmpty(user?.Uid))
                 return [];
 
             var ownedListsSnapshot = await _collection
-                .WhereEqualsTo("ownerId", currentUserId)
+                .WhereEqualsTo("ownerId", user.Uid)
                 .GetDocumentsAsync<ShoppingListDocument>();
 
             var collaboratorListsSnapshot = await _collection
-                .WhereArrayContains("collaborators", currentUserId)
+                .WhereArrayContains("collaborators", user.Uid)
                 .GetDocumentsAsync<ShoppingListDocument>();
 
             var allDocuments = ownedListsSnapshot.Documents
@@ -110,12 +110,12 @@ namespace Listly.Store
 
         public async Task UpdateShoppingListAsync(ShoppingList shoppingList)
         {
-            var currentUserId = await _authService.GetCurrentUserIdAsync();
+            var user = _auth.CurrentUser;
 
-            if (string.IsNullOrEmpty(currentUserId))
+            if (string.IsNullOrEmpty(user?.Uid))
                 throw new InvalidOperationException("User must be authenticated");
 
-            shoppingList.LastModifiedUser = currentUserId;
+            shoppingList.LastModifiedUser = user.Uid;
             var doc = ShoppingListDocument.FromShoppingList(shoppingList);
             var docRef = _collection.GetDocument(shoppingList.Id.ToString());
 
@@ -150,12 +150,12 @@ namespace Listly.Store
 
         public async Task AddCurrentUserAsCollaboratorOfShoppingList(ShoppingList shoppingList)
         {
-            var currentUserId = await _authService.GetCurrentUserIdAsync();
+            var user = _auth.CurrentUser;
 
-            if (string.IsNullOrEmpty(currentUserId))
+            if (string.IsNullOrEmpty(user?.Uid))
                 throw new InvalidOperationException("User must be authenticated");
 
-            shoppingList.Collaborators.Add(currentUserId);
+            shoppingList.Collaborators.Add(user.Uid);
             await UpdateShoppingListAsync(shoppingList);
         }
 
