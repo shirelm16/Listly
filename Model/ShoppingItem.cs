@@ -36,5 +36,21 @@ namespace Listly.Model
             Quantity = quantity;
             Unit = unit;
         }
+        
+        public event Action<ShoppingItem>? ItemPurchased;
+
+        public event Action<ShoppingItem>? ItemUnpurchased;
+
+        partial void OnIsPurchasedChanged(bool value)
+        {
+            if (value)
+            {
+                ItemPurchased?.Invoke(this);
+            }
+            else
+            {
+                ItemUnpurchased?.Invoke(this);
+            }
+        }
     }
 }

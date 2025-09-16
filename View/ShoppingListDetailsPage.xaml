@@ -29,89 +29,63 @@
                        HorizontalOptions="Center"/>
             </Grid>
         </Border>
-        <CollectionView Grid.Row="1" 
-                        ItemsSource="{Binding ShoppingList.Items}" 
-                        Margin="16,8">
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="model:ShoppingItem">
-                    <Border BackgroundColor="{StaticResource Surface}"
-                            StrokeThickness="0"
-                            Margin="0,6"
-                            Padding="16"
-                            StrokeShape="RoundRectangle 12">
-                        <Border.Shadow>
-                            <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
-                        </Border.Shadow>
-                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                            <CheckBox Grid.Column="0"
-                                          Color="{StaticResource Primary}"
-                                          IsChecked="{Binding IsPurchased, Mode=TwoWay}" 
-                                          VerticalOptions="Center"/>
+        <ScrollView Grid.Row="1" Margin="16,8">
+            <StackLayout Spacing="8">
+                <!-- Active Items -->
+                <CollectionView ItemsSource="{Binding ActiveItems}"
+                                ItemTemplate="{StaticResource ShoppingItemTemplate}" />
 
-                            <StackLayout Grid.Column="1" 
-                                         Spacing="2" 
-                                         Margin="12,0,0,0"
-                                         VerticalOptions="Center">
-                                <Label Text="{Binding Name}"
+                <!-- Purchased Items Section -->
+                <Border BackgroundColor="{StaticResource Surface}"
+                        StrokeThickness="0"
+                        Margin="0,16,0,0"
+                        Padding="0"
+                        StrokeShape="RoundRectangle 12"
+                        IsVisible="{Binding PurchasedItems.Count, Converter={StaticResource CountToBoolConverter}}">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
+                    </Border.Shadow>
+
+                    <StackLayout Spacing="0">
+                        <!-- Purchased Section Header -->
+                        <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                                StrokeThickness="0"
+                                Padding="16,12"
+                                StrokeShape="RoundRectangle 12">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Text="{Binding PurchasedSectionTitle}"
                                        FontSize="16"
-                                       TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
-                                <Label FontSize="14"
+                                       FontAttributes="Bold"
                                        TextColor="{StaticResource OnSurfaceVariant}"
-                                       IsVisible="{Binding Quantity, Converter={StaticResource NullOrEmptyToBoolConverter}}">
+                                       VerticalOptions="Center"/>
+
+                                <Label Grid.Column="1"
+                                       FontSize="18"
+                                       TextColor="{StaticResource OnSurfaceVariant}"
+                                       VerticalOptions="Center">
                                     <Label.Text>
-                                        <MultiBinding StringFormat="Qty: {0}{1}">
-                                            <Binding Path="Quantity" />
-                                            <Binding Path="Unit" />
-                                        </MultiBinding>
+                                        <Binding Path="IsPurchasedSectionExpanded">
+                                            <Binding.Converter>
+                                                <converters:BoolToExpandIconConverter />
+                                            </Binding.Converter>
+                                        </Binding>
                                     </Label.Text>
                                 </Label>
-                            </StackLayout>
-                            <Frame Grid.Column="2"
-                                   BackgroundColor="Transparent"
-                                   BorderColor="Transparent"
-                                   WidthRequest="40"
-                                   HeightRequest="40"
-                                   CornerRadius="20"
-                                   Padding="0"
-                                   HasShadow="False">
-                                <Label Text="✏️" 
-                                       FontSize="14" 
-                                       TextColor="#2196F3"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center"/>
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
-                                                  CommandParameter="{Binding}"/>
-                                </Frame.GestureRecognizers>
-                            </Frame>
+                            </Grid>
 
-                            <Frame Grid.Column="3"
-                                   BackgroundColor="Transparent"
-                                   BorderColor="Transparent"
-                                   WidthRequest="40"
-                                   HeightRequest="40"
-                                   CornerRadius="20"
-                                   Padding="0"
-                                   HasShadow="False">
-                                <Label Text="🗑️" 
-                                       FontSize="14" 
-                                       TextColor="#F44336"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center"/>
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteItemCommand}"
-                                                  CommandParameter="{Binding}"/>
-                                </Frame.GestureRecognizers>
-                            </Frame>
-                        </Grid>
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
-                                                  CommandParameter="{Binding}"/>
-                        </Border.GestureRecognizers>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding TogglePurchasedSectionCommand}" />
+                            </Border.GestureRecognizers>
+                        </Border>
+
+                        <!-- Purchased Items List -->
+                        <CollectionView ItemsSource="{Binding PurchasedItems}" IsVisible="{Binding IsPurchasedSectionExpanded}"
+                                        ItemTemplate="{StaticResource ShoppingItemTemplate}" />
+                    </StackLayout>
+                </Border>
+            </StackLayout>
+        </ScrollView>
         <Button Grid.Row="2"
                 Text="+ Add Item"
                 BackgroundColor="{StaticResource Primary}"
@@ -126,11 +100,119 @@
                 <Shadow Brush="{StaticResource Primary}" Opacity="0.3" Radius="12" Offset="0,4"/>
             </Button.Shadow>
         </Button>
+        <Frame Grid.Row="1"
+               x:Name="UndoToast"
+               BackgroundColor="{StaticResource OnSurface}"
+               BorderColor="Transparent"
+               CornerRadius="25"
+               Padding="16,12"
+               Margin="20"
+               IsVisible="{Binding ShowUndoToast}"
+               VerticalOptions="End"
+               HorizontalOptions="Center"
+               ZIndex="100">
+            <Frame.Shadow>
+                <Shadow Brush="Black" Opacity="0.2" Radius="8" Offset="0,4"/>
+            </Frame.Shadow>
+            <StackLayout Orientation="Horizontal" Spacing="12">
+                <Label x:Name="UndoMessage"
+                       Text="Item marked as purchased"
+                       TextColor="{StaticResource Surface}"
+                       FontSize="14"
+                       VerticalOptions="Center"/>
+                <Button x:Name="UndoButton"
+                        Text="UNDO"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource Primary}"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        Padding="8,0"
+                        Command="{Binding UndoLastPurchaseCommand}"/>
+            </StackLayout>
+        </Frame>
     </Grid>
     <ContentPage.Resources>
         <ResourceDictionary>
             <converters:StrikeThroughIfPurchasedConverter x:Key="StrikeThroughIfPurchasedConverter" />
             <converters:NullOrEmptyToBoolConverter x:Key="NullOrEmptyToBoolConverter" />
+            <converters:CountToBoolConverter x:Key="CountToBoolConverter" />
+            <converters:BoolToExpandIconConverter x:Key="BoolToExpandIconConverter" />
+            <DataTemplate x:Key="ShoppingItemTemplate" x:DataType="model:ShoppingItem">
+                <Border BackgroundColor="{StaticResource Surface}"
+                        StrokeThickness="0"
+                        Margin="0,6"
+                        Padding="16"
+                        StrokeShape="RoundRectangle 12">    
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                        <CheckBox Grid.Column="0"
+                                  Color="{StaticResource Primary}"
+                                  IsChecked="{Binding IsPurchased, Mode=TwoWay}" 
+                                  VerticalOptions="Center"/>    
+                        <StackLayout Grid.Column="1" 
+                                     Spacing="2" 
+                                     Margin="12,0,0,0"
+                                     VerticalOptions="Center">
+                            <Label Text="{Binding Name}"
+                                   FontSize="16"
+                                   TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
+                            <Label FontSize="14"
+                                   TextColor="{StaticResource OnSurfaceVariant}"
+                                   IsVisible="{Binding Quantity, Converter={StaticResource NullOrEmptyToBoolConverter}}">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="Qty: {0}{1}">
+                                        <Binding Path="Quantity" />
+                                        <Binding Path="Unit" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                        </StackLayout>
+                        <Frame Grid.Column="2"
+                               BackgroundColor="Transparent"
+                               BorderColor="Transparent"
+                               WidthRequest="40"
+                               HeightRequest="40"
+                               CornerRadius="20"
+                               Padding="0"
+                               HasShadow="False">
+                            <Label Text="✏️" 
+                                   FontSize="14" 
+                                   TextColor="#2196F3"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
+                                                      CommandParameter="{Binding}"/>
+                            </Frame.GestureRecognizers>
+                        </Frame>
+
+                        <Frame Grid.Column="3"
+                               BackgroundColor="Transparent"
+                               BorderColor="Transparent"
+                               WidthRequest="40"
+                               HeightRequest="40"
+                               CornerRadius="20"
+                               Padding="0"
+                               HasShadow="False">
+                            <Label Text="🗑️" 
+                                   FontSize="14" 
+                                   TextColor="#F44336"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteItemCommand}"
+                                                      CommandParameter="{Binding}"/>
+                            </Frame.GestureRecognizers>
+                        </Frame>
+                    </Grid>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
+                                              CommandParameter="{Binding}"/>
+                    </Border.GestureRecognizers>
+                </Border>
+            </DataTemplate>
         </ResourceDictionary>
     </ContentPage.Resources>
 </ContentPage>

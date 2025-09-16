@@ -33,6 +33,9 @@ namespace Listly.ViewModel
                 {
                     ShoppingList.Items.Add(item);
                     item.PropertyChanged += ShoppingItem_PropertyChanged;
+                    item.ItemPurchased += ShoppingItem_OnItemPurchased;
+                    item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
+                    UpdateItemCollections();
                     WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
                 }
             });
@@ -50,6 +53,25 @@ namespace Listly.ViewModel
         [ObservableProperty]
         ShoppingList shoppingList;
 
+        [ObservableProperty]
+        private ShoppingItem? lastPurchasedItem;
+
+        [ObservableProperty]
+        private bool showUndoToast;
+
+        private CancellationTokenSource? _hideToastCancellation;
+
+        [ObservableProperty]
+        private ObservableCollection<ShoppingItem> activeItems = new();
+
+        [ObservableProperty]
+        private ObservableCollection<ShoppingItem> purchasedItems = new();
+
+        [ObservableProperty]
+        private bool isPurchasedSectionExpanded = false;
+
+        [ObservableProperty]
+        private string purchasedSectionTitle = "Purchased (0 items)";
 
         [RelayCommand]
         async Task EditItem(ShoppingItem shoppingItem)
@@ -78,6 +100,7 @@ namespace Listly.ViewModel
 
             ShoppingList.Items.Remove(shoppingItem);
             await _shoppingItemStore.DeleteShoppingItemAsync(shoppingItem.ShoppingListId, shoppingItem.Id);
+            UpdateItemCollections();
             WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
         }
 
@@ -88,6 +111,26 @@ namespace Listly.ViewModel
             await MopupService.Instance.PushAsync(popup);
         }
 
+        [RelayCommand]
+        private void UndoLastPurchase()
+        {
+            if (LastPurchasedItem != null)
+            {
+                _hideToastCancellation?.Cancel();
+
+                LastPurchasedItem.IsPurchased = false;
+                UpdateItemCollections();
+                ShowUndoToast = false;
+                LastPurchasedItem = null;
+            }
+        }
+
+        [RelayCommand]
+        private void TogglePurchasedSection()
+        {
+            IsPurchasedSectionExpanded = !IsPurchasedSectionExpanded;
+        }
+
         partial void OnShoppingListChanged(ShoppingList value)
         {
             if (value?.Items != null)
@@ -95,6 +138,9 @@ namespace Listly.ViewModel
                 foreach (var item in value.Items)
                 {
                     item.PropertyChanged += ShoppingItem_PropertyChanged;
+                    item.ItemPurchased += ShoppingItem_OnItemPurchased;
+                    item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
+                    UpdateItemCollections();
                 }
             }
         }
@@ -105,6 +151,63 @@ namespace Listly.ViewModel
             await _shoppingItemStore.UpdateShoppingItemAsync(item);
 
             WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
+        }
+
+        private async void ShoppingItem_OnItemPurchased(ShoppingItem item)
+        {
+            LastPurchasedItem = item;
+            ShowUndoToast = true;
+
+            UpdateItemCollections();
+
+            // Cancel any existing hide timer
+            _hideToastCancellation?.Cancel();
+            _hideToastCancellation = new CancellationTokenSource();
+
+            try
+            {
+                await Task.Delay(4000, _hideToastCancellation.Token);
+
+                // Only hide if this is still the current item and token wasn't cancelled
+                if (LastPurchasedItem == item && !_hideToastCancellation.Token.IsCancellationRequested)
+                {
+                    ShowUndoToast = false;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Task was cancelled, which is expected behavior
+            }
+        }
+
+        private async void ShoppingItem_OnItemUnpurchased(ShoppingItem item)
+        {
+            UpdateItemCollections();
+            if (LastPurchasedItem == item)
+            {
+                UndoLastPurchase();
+            }
+        }
+
+        private void UpdateItemCollections()
+        {
+            ActiveItems.Clear();
+            PurchasedItems.Clear();
+
+            foreach (var item in ShoppingList.Items)
+            {
+                if (item.IsPurchased)
+                    PurchasedItems.Add(item);
+                else
+                    ActiveItems.Add(item);
+            }
+
+            PurchasedSectionTitle = $"Purchased ({PurchasedItems.Count} items)";
+
+            if(PurchasedItems.Count == 0) 
+            {
+                IsPurchasedSectionExpanded = false;
+            }
         }
 
         public void Dispose()
@@ -120,12 +223,16 @@ namespace Listly.ViewModel
                 // Unregister all messages from WeakReferenceMessenger
                 WeakReferenceMessenger.Default.UnregisterAll(this);
 
-                // Unsubscribe from PropertyChanged events of items in the current ShoppingList
+                _hideToastCancellation?.Cancel();
+
+                // Unsubscribe from events of items in the current ShoppingList
                 if (ShoppingList != null)
                 {
                     foreach (var item in ShoppingList.Items ?? Enumerable.Empty<ShoppingItem>())
                     {
                         item.PropertyChanged -= ShoppingItem_PropertyChanged;
+                        item.ItemPurchased -= ShoppingItem_OnItemPurchased;
+                        item.ItemUnpurchased -= ShoppingItem_OnItemUnpurchased;
                     }
                 }
             }
