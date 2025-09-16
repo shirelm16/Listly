@@ -7,6 +7,7 @@ using Mopups.Services;
 using Plugin.Firebase.Auth;
 using Plugin.Firebase.Auth.Facebook;
 using Plugin.Firebase.Auth.Google;
+using Plugin.Firebase.CloudMessaging;
 
 namespace Listly.ViewModel
 {
@@ -46,22 +47,13 @@ namespace Listly.ViewModel
             var user = _auth.CurrentUser;
             if (user != null)
             {
-                if (user.IsAnonymous)
-                {
-                    WelcomeText = "Welcome! Sign in to save your data.";
-                    IsSignedIn = false;
-                    IsSignedOut = true;
-                }
-                else
-                {
-                    WelcomeText = $"Welcome {user.DisplayName ?? user.Email ?? "User"}!";
-                    IsSignedIn = true;
-                    IsSignedOut = false;
-                }
+                WelcomeText = $"Welcome {user.DisplayName ?? user.Email ?? "User"}!";
+                IsSignedIn = true;
+                IsSignedOut = false;
             }
             else
             {
-                WelcomeText = "Welcome!";
+                WelcomeText = "Welcome! Sign in to save your data.";
                 IsSignedIn = false;
                 IsSignedOut = true;
             }
@@ -80,26 +72,8 @@ namespace Listly.ViewModel
 
             try
             {
-                var currentUser = _auth.CurrentUser;
-                if (currentUser?.IsAnonymous == true)
-                {
-                    try
-                    {
-                        await _googleAuth.LinkWithGoogleAsync();
-                        await MainThread.InvokeOnMainThreadAsync(() =>
-                        {
-                            UpdateUserState();
-                            MopupService.Instance.PopAsync();
-                        });
-                        return;
-                    }
-                    catch(Exception)
-                    {
-                        await _auth.SignOutAsync();
-                    }
-                }
-
                 await _googleAuth.SignInWithGoogleAsync();
+                await CreateOrUpdateUserInDb();
 
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
@@ -127,7 +101,6 @@ namespace Listly.ViewModel
             finally
             {
                 IsLoading = false;
-                await UpdateUser();
             }
         }
 
@@ -138,15 +111,8 @@ namespace Listly.ViewModel
 
             try
             {
-                var currentUser = _auth.CurrentUser;
-                if (currentUser?.IsAnonymous == true)
-                {
-                    await _facebookAuth.LinkWithFacebookAsync();
-                }
-                else
-                {
-                    await _facebookAuth.SignInWithFacebookAsync();
-                }
+                await _facebookAuth.SignInWithFacebookAsync();
+                await CreateOrUpdateUserInDb();
 
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
@@ -174,7 +140,6 @@ namespace Listly.ViewModel
             finally
             {
                 IsLoading = false;
-                await UpdateUser();
             }
         }
 
@@ -229,16 +194,25 @@ namespace Listly.ViewModel
             }
         }
 
-        private async Task UpdateUser()
+        private async Task CreateOrUpdateUserInDb()
         {
             var user = _auth.CurrentUser;
-            var userData = new User
+            if (user != null)
             {
-                Id = user.Uid,
-                Email = user.Email,
-                Name = user.DisplayName
-            };
-            await _usersStore.CreateOrUpdateUser(userData);
+                var userData = new User
+                {
+                    Id = user.Uid,
+                    Email = user.Email,
+                    Name = user.DisplayName
+                };
+
+                var deviceToken = await CrossFirebaseCloudMessaging.Current.GetTokenAsync();
+                if (deviceToken != null)
+                {
+                    userData.DeviceToken = deviceToken;
+                }
+                await _usersStore.CreateOrUpdateUser(userData);
+            }
         }
     }
 }

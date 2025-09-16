@@ -19,18 +19,20 @@ namespace Listly.Store
         [FirestoreProperty("email")]
         public string Email { get; set; }
 
-        [FirestoreProperty("deviceTokens")]
-        public List<string> DeviceTokens { get; set; }
+        [FirestoreProperty("deviceToken")]
+        public string DeviceToken { get; set; }
 
         public static UserDocument FromUser(User user)
         {
-            return new UserDocument()
+            var userDoc =  new UserDocument()
             {
                 Id = user.Id,
                 Email = user.Email,
-                DeviceTokens = user.DeviceTokens,
                 DisplayName = user.Name,
+                DeviceToken = user.DeviceToken,
             };
+
+            return userDoc;
         }
     }
 }

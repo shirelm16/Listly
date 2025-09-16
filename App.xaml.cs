@@ -20,7 +20,14 @@ namespace Listly
             _usersStore = usersStore;
             MainPage = new AppShell();
 
-            Task.Run(() => InitializeUserAsync(authService));
+            CrossFirebaseCloudMessaging.Current.TokenChanged += async (s, newToken) =>
+            {
+                var userId = await authService.GetCurrentUserIdAsync();
+                if (userId != null)
+                {
+                    await _usersStore.UpdateDeviceToken(userId, newToken.Token);
+                }
+            };
         }
 
         protected override async void OnAppLinkRequestReceived(Uri uri)
@@ -38,34 +45,6 @@ namespace Listly
         {
             var popup = new SharedShoppingListInvitationPopup(_shoppingListsStore, shareId);
             await MopupService.Instance.PushAsync(popup);
-        }
-
-        private async Task InitializeUserAsync(IAuthService authService)
-        {
-            var userId = await authService.GetCurrentUserIdAsync();
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                await authService.SignInAnonymouslyAsync();
-                userId = await authService.GetCurrentUserIdAsync();
-            }
-
-            var existingUser = await _usersStore.GetUser(userId);
-            if (existingUser == null)
-            {
-                await _usersStore.CreateUser(userId);
-            }
-
-            var token = await CrossFirebaseCloudMessaging.Current.GetTokenAsync();
-            if (!string.IsNullOrEmpty(token))
-            {
-                await _usersStore.AddDeviceToken(userId, token);
-            }
-
-            CrossFirebaseCloudMessaging.Current.TokenChanged += async (s, newToken) =>
-            {
-                await _usersStore.AddDeviceToken(userId, newToken.Token);
-            };
         }
     }
 }

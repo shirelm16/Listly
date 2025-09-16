@@ -6,6 +6,7 @@ using Listly.Model;
 using Listly.Store;
 using Listly.View;
 using Mopups.Services;
+using Plugin.Firebase.Auth;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
@@ -14,14 +15,16 @@ namespace Listly.ViewModel
     public partial class ShoppingListsViewModel : BaseViewModel
     {
         private readonly IShoppingListStore _shoppingListStore;
+        private readonly IFirebaseAuth _auth;
 
         [ObservableProperty]
         ObservableCollection<ShoppingList> _shoppingLists = new();
 
-        public ShoppingListsViewModel(IShoppingListStore shoppingListStore)
+        public ShoppingListsViewModel(IShoppingListStore shoppingListStore, IFirebaseAuth auth)
         {
             Title = "My Lists";
             _shoppingListStore = shoppingListStore;
+            _auth = auth;
 
             WeakReferenceMessenger.Default.Register<ShoppingListUpdatedMessage>(this, async (r, m) =>
             {
@@ -43,6 +46,12 @@ namespace Listly.ViewModel
         {
             if (shoppingList == null)
                 return;
+
+            var currentuser = _auth.CurrentUser;
+            if(currentuser == null)
+            {
+                await Shell.Current.DisplayAlert("Sign in required", "You must sign in to share lists.", "OK");
+            }
 
             var popup = new ShareShoppingListPopup(_shoppingListStore, shoppingList);
             await MopupService.Instance.PushAsync(popup);

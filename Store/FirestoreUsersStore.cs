@@ -12,9 +12,8 @@ namespace Listly.Store
     public interface IUsersStore
     {
         public Task CreateOrUpdateUser(User user);
-        public Task CreateUser(string userId, string? token = null);
         public Task<UserDocument> GetUser(string userId);
-        public Task AddDeviceToken(string userId, string token);
+        public Task UpdateDeviceToken(string userId, string token);
     }
 
     public class FirestoreUsersStore : IUsersStore
@@ -26,14 +25,14 @@ namespace Listly.Store
             _collection = CrossFirebaseFirestore.Current.GetCollection("users");
         }
 
-        public async Task AddDeviceToken(string userId, string token)
+        public async Task UpdateDeviceToken(string userId, string token)
         {
             var userDocRef = _collection.GetDocument(userId);
             var userDoc = (await userDocRef.GetDocumentSnapshotAsync<UserDocument>()).Data;
 
             if (userDoc != null)
             {
-                userDoc.DeviceTokens.Add(token);
+                userDoc.DeviceToken = token;
                 await userDocRef.SetDataAsync(userDoc);
             }
         }
@@ -42,16 +41,6 @@ namespace Listly.Store
         {
             var userDoc = UserDocument.FromUser(user);
             await _collection.GetDocument(user.Id).SetDataAsync(userDoc, SetOptions.Merge());
-        }
-
-        public async Task CreateUser(string userId, string? token = null)
-        {
-            var userDoc = new UserDocument
-            {
-                Id = userId,
-                DeviceTokens = token == null ? [] : [token]
-            };
-            await _collection.GetDocument(userId).SetDataAsync(userDoc);
         }
 
         public async Task<UserDocument> GetUser(string userId)

@@ -58,8 +58,8 @@ exports.notifyOnSharedListChange = onDocumentWritten(
         const userDoc = await admin.firestore().doc(`users/${userId}`).get();
         if (userDoc.exists) {
           const userData = userDoc.data();
-          if (userData.deviceTokens) {
-            tokens.push(...userData.deviceTokens);
+          if (userData.deviceToken) {
+            tokens.push(userData.deviceToken);
           }
         }
       }
