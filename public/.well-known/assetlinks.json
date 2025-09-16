@@ -5,8 +5,8 @@
       "namespace": "android_app",
       "package_name": "com.shirelm.listly",
       "sha256_cert_fingerprints": [
-        "EA:34:92:29:3E:C2:38:01:9B:61:ED:90:16:C1:B8:36:C8:C8:65:9C:84:BB:16:9B:B3:0E:ED:22:9D:D6:1B:AE" //release
-        //"C5:F2:F4:99:4F:09:FD:59:5B:97:CD:85:A9:80:E0:60:17:5A:F6:85:BA:B9:5A:5D:19:79:CC:63:FD:E8:5F:89" - debug
+        "EA:34:92:29:3E:C2:38:01:9B:61:ED:90:16:C1:B8:36:C8:C8:65:9C:84:BB:16:9B:B3:0E:ED:22:9D:D6:1B:AE",
+        "C5:F2:F4:99:4F:09:FD:59:5B:97:CD:85:A9:80:E0:60:17:5A:F6:85:BA:B9:5A:5D:19:79:CC:63:FD:E8:5F:89"
       ]
     }
   }
