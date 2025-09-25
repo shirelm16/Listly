@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Listly.Messages;
 using Listly.Model;
+using Listly.Services;
 using Listly.Store;
 using Listly.View;
 using Mopups.Services;
@@ -21,10 +22,12 @@ namespace Listly.ViewModel
     public partial class ShoppingListDetailsViewModel : BaseViewModel, IDisposable
     {
         private readonly IShoppingItemStore _shoppingItemStore;
+        private readonly IShoppingItemsSortingService _sortingItemsService;
 
-        public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore)
+        public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore, IShoppingItemsSortingService sortingItemsService)
         {
             _shoppingItemStore = shoppingItemStore;
+            _sortingItemsService = sortingItemsService;
 
             WeakReferenceMessenger.Default.Register<ShoppingItemCreatedMessage>(this, async (r, m) =>
             {
@@ -35,6 +38,7 @@ namespace Listly.ViewModel
                     item.PropertyChanged += ShoppingItem_PropertyChanged;
                     item.ItemPurchased += ShoppingItem_OnItemPurchased;
                     item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
+                    item.CategoryChanged += ShoppingItem_OnCategoryChanged;
                     UpdateItemCollections();
                     WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
                 }
@@ -47,6 +51,7 @@ namespace Listly.ViewModel
                 itemChanged.Name = item.Name;
                 itemChanged.IsPurchased = item.IsPurchased;
                 itemChanged.Quantity = item.Quantity;
+                itemChanged.Category = item.Category;
             });
         }
 
@@ -140,8 +145,9 @@ namespace Listly.ViewModel
                     item.PropertyChanged += ShoppingItem_PropertyChanged;
                     item.ItemPurchased += ShoppingItem_OnItemPurchased;
                     item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
-                    UpdateItemCollections();
+                    item.CategoryChanged += ShoppingItem_OnCategoryChanged;
                 }
+                UpdateItemCollections();
             }
         }
 
@@ -180,7 +186,7 @@ namespace Listly.ViewModel
             }
         }
 
-        private async void ShoppingItem_OnItemUnpurchased(ShoppingItem item)
+        private void ShoppingItem_OnItemUnpurchased(ShoppingItem item)
         {
             UpdateItemCollections();
             if (LastPurchasedItem == item)
@@ -189,18 +195,24 @@ namespace Listly.ViewModel
             }
         }
 
+        private void ShoppingItem_OnCategoryChanged(ShoppingItem item)
+        {
+            UpdateItemCollections();
+        }
+
         private void UpdateItemCollections()
         {
-            ActiveItems.Clear();
-            PurchasedItems.Clear();
+            var activeItems = ShoppingList.Items
+                .Where(item => !item.IsPurchased);
 
-            foreach (var item in ShoppingList.Items)
-            {
-                if (item.IsPurchased)
-                    PurchasedItems.Add(item);
-                else
-                    ActiveItems.Add(item);
-            }
+            var sortedActiveItems = _sortingItemsService.Sort(activeItems);
+
+            ActiveItems = new ObservableCollection<ShoppingItem>(sortedActiveItems);
+
+            var purchasedItems = ShoppingList.Items
+                .Where(item => item.IsPurchased);
+
+            PurchasedItems = new ObservableCollection<ShoppingItem>(purchasedItems);
 
             PurchasedSectionTitle = $"Purchased ({PurchasedItems.Count} items)";
 
@@ -233,6 +245,7 @@ namespace Listly.ViewModel
                         item.PropertyChanged -= ShoppingItem_PropertyChanged;
                         item.ItemPurchased -= ShoppingItem_OnItemPurchased;
                         item.ItemUnpurchased -= ShoppingItem_OnItemUnpurchased;
+                        item.CategoryChanged -= ShoppingItem_OnCategoryChanged;
                     }
                 }
             }

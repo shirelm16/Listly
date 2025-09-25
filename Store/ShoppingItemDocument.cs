@@ -28,6 +28,9 @@ namespace Listly.Store
         [FirestoreProperty("isPurchased")]
         public bool IsPurchased { get; set; }
 
+        [FirestoreProperty("category")]
+        public string Category { get; set; }
+
 
         public static ShoppingItemDocument FromShoppingItem(ShoppingItem item) => new()
         {
@@ -36,7 +39,8 @@ namespace Listly.Store
             Name = item.Name,
             Quantity = item.Quantity,
             Unit = item.Unit,
-            IsPurchased = item.IsPurchased
+            IsPurchased = item.IsPurchased,
+            Category = item.Category == null ? Model.Category.Other.GetDisplayName() : item.Category.Name.GetDisplayName()
         };
 
         public ShoppingItem ToShoppingItem() => new()
@@ -46,7 +50,8 @@ namespace Listly.Store
             Name = Name,
             Quantity = Quantity,
             Unit = Unit,
-            IsPurchased = IsPurchased
+            IsPurchased = IsPurchased,
+            Category = Category == null ? new ItemCategory() : new ItemCategory(CategoryHelper.FromDisplayName(Category))
         };
     }
 }

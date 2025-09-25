@@ -25,7 +25,6 @@ namespace Listly.ViewModel
             Title = "My Lists";
             _shoppingListStore = shoppingListStore;
             _auth = auth;
-
             WeakReferenceMessenger.Default.Register<ShoppingListUpdatedMessage>(this, async (r, m) =>
             {
                 var list = m.Value;

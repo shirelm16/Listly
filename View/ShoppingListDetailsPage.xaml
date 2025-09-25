@@ -137,6 +137,7 @@
             <converters:NullOrEmptyToBoolConverter x:Key="NullOrEmptyToBoolConverter" />
             <converters:CountToBoolConverter x:Key="CountToBoolConverter" />
             <converters:BoolToExpandIconConverter x:Key="BoolToExpandIconConverter" />
+            <converters:CategoryToIconConverter x:Key="CategoryToIconConverter" />
             <DataTemplate x:Key="ShoppingItemTemplate" x:DataType="model:ShoppingItem">
                 <Border BackgroundColor="{StaticResource Surface}"
                         StrokeThickness="0"
@@ -146,16 +147,22 @@
                     <Border.Shadow>
                         <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
                     </Border.Shadow>
-                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                    <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
                         <CheckBox Grid.Column="0"
                                   Color="{StaticResource Primary}"
                                   IsChecked="{Binding IsPurchased, Mode=TwoWay}" 
-                                  VerticalOptions="Center"/>    
-                        <StackLayout Grid.Column="1" 
+                                  VerticalOptions="Center"/>
+                        <Label Grid.Column="1" 
+                               Text="{Binding Category.Name, Converter={StaticResource CategoryToIconConverter}}"
+                               FontSize="18"
+                               VerticalOptions="Center"
+                               Margin="5,0,8,0"/>
+                        <StackLayout Grid.Column="2" 
                                      Spacing="2" 
                                      Margin="12,0,0,0"
                                      VerticalOptions="Center">
                             <Label Text="{Binding Name}"
+                                   TextColor="Black"
                                    FontSize="16"
                                    TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
                             <Label FontSize="14"
@@ -169,7 +176,7 @@
                                 </Label.Text>
                             </Label>
                         </StackLayout>
-                        <Frame Grid.Column="2"
+                        <Frame Grid.Column="3"
                                BackgroundColor="Transparent"
                                BorderColor="Transparent"
                                WidthRequest="40"
@@ -188,7 +195,7 @@
                             </Frame.GestureRecognizers>
                         </Frame>
 
-                        <Frame Grid.Column="3"
+                        <Frame Grid.Column="4"
                                BackgroundColor="Transparent"
                                BorderColor="Transparent"
                                WidthRequest="40"

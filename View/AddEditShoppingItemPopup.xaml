@@ -36,15 +36,34 @@
                 <Entry Text="{Binding Name}"
                        BackgroundColor="Transparent"
                        Placeholder="Item name"
-                       FontSize="16"
+                       FontSize="15"
                        TextColor="{StaticResource OnSurface}"
                        PlaceholderColor="{StaticResource OnSurfaceVariant}"
                        VerticalOptions="Center"
                        Margin="16,0"/>
             </Border>
 
+            <Border Grid.Row="2"
+                    Stroke="{StaticResource Outline}"
+                    StrokeThickness="1"
+                    BackgroundColor="{StaticResource Surface}"
+                    StrokeShape="RoundRectangle 12"
+                    HeightRequest="56">
+                <Picker x:Name="CategoryPicker"
+                        Title="Category"
+                        ItemsSource="{Binding Categories}"
+                        SelectedItem="{Binding SelectedCategory}"
+                        BackgroundColor="White"
+                        TextColor="{StaticResource OnSurface}"
+                        TitleColor="{StaticResource OnSurfaceVariant}"
+                        FontSize="14"
+                        VerticalOptions="Center"
+                        Margin="16,0"> 
+                </Picker>
+            </Border>
+
             <!-- Quantity Section -->
-            <StackLayout Grid.Row="2" Spacing="12">
+            <StackLayout Grid.Row="3" Spacing="12">
                 <Label Text="Quantity"
                        FontSize="16"
                        FontAttributes="Bold"
@@ -59,7 +78,7 @@
                             HeightRequest="56">
                         <Entry Text="{Binding Quantity, Mode=TwoWay, Converter={StaticResource NullableDoubleConverter}}"
                                Placeholder="Quantity"
-                               FontSize="16"
+                               FontSize="14"
                                TextColor="{StaticResource OnSurface}"
                                PlaceholderColor="{StaticResource OnSurfaceVariant}"
                                VerticalOptions="Center"
@@ -74,7 +93,7 @@
                             HeightRequest="56">
                         <Entry Text="{Binding Unit, Mode=TwoWay}"
                                Placeholder="Unit"
-                               FontSize="16"
+                               FontSize="14"
                                TextColor="{StaticResource OnSurface}"
                                PlaceholderColor="{StaticResource OnSurfaceVariant}"
                                VerticalOptions="Center"
@@ -106,7 +125,7 @@
             </StackLayout>
 
             <!-- Action Buttons -->
-            <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="16">
+            <Grid Grid.Row="4" ColumnDefinitions="*,*" ColumnSpacing="16">
                 <Button Grid.Column="0"
                     Text="Cancel"
                     Command="{Binding CancelCommand}"

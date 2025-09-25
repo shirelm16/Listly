@@ -175,7 +175,6 @@ namespace Listly.Store
                 var item = itemDoc.Data.ToShoppingItem();
                 shoppingList.Items.Add(item);
             }
-
             return shoppingList;
         }
     }

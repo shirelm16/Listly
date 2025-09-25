@@ -16,6 +16,7 @@ using Plugin.Firebase.CloudMessaging;
 using Plugin.Firebase.Auth.Google;
 using Plugin.Firebase.Auth.Facebook;
 using Xamarin.Facebook;
+using Listly.Services;
 
 namespace Listly
 {
@@ -35,6 +36,12 @@ namespace Listly
                     {
                         handler.PlatformView.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Colors.Transparent.ToAndroid());
                     });
+
+                    handlers.AddHandler(typeof(Picker), typeof(Microsoft.Maui.Handlers.PickerHandler));
+                    Microsoft.Maui.Handlers.PickerHandler.Mapper.AppendToMapping("NoUnderline", (handler, view) =>
+                    {
+                        handler.PlatformView.BackgroundTintList = Android.Content.Res.ColorStateList.ValueOf(Colors.Transparent.ToAndroid());
+                    });
 #endif
                 })
                 .ConfigureMopups()
@@ -51,6 +58,7 @@ namespace Listly
             builder.Services.AddSingleton<IShoppingListStore, FirestoreShoppingListStore>();
             builder.Services.AddSingleton<IShoppingItemStore, FirestoreShoppingListStore>();
             builder.Services.AddSingleton<IUsersStore, FirestoreUsersStore>();
+            builder.Services.AddSingleton<IShoppingItemsSortingService, ShoppingItemsSortingService>();
 
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddSingleton<ProfilePage>();

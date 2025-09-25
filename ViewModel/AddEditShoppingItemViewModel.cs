@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Listly.ViewModel
@@ -26,6 +27,8 @@ namespace Listly.ViewModel
 
         public bool CanSave => !string.IsNullOrWhiteSpace(Name?.Trim()) && (!IsEditMode || HasChanges);
 
+        public List<string> Categories { get; set; }
+
         [ObservableProperty]
         string name;
 
@@ -35,12 +38,17 @@ namespace Listly.ViewModel
         [ObservableProperty]
         string? unit;
 
+        [ObservableProperty]
+        string selectedCategory;
+
+
         public bool HasChanges
         {
             get
             {
                 return !string.Equals(_shoppingItem?.Name, Name?.Trim(), StringComparison.Ordinal) ||
-                       _shoppingItem?.Quantity != Quantity || _shoppingItem?.Unit != Unit;
+                       _shoppingItem?.Quantity != Quantity || _shoppingItem?.Unit != Unit || 
+                       _shoppingItem?.Category?.Name.GetDisplayName() != SelectedCategory;
             }
         }
 
@@ -52,6 +60,10 @@ namespace Listly.ViewModel
             Name = shoppingItem?.Name;
             Quantity = shoppingItem?.Quantity;
             Unit = shoppingItem?.Unit;
+            Categories = Enum.GetValues<Category>()
+                .Select(e => e.GetDisplayWithIcon())
+                .ToList();
+            SelectedCategory = shoppingItem?.Category?.Name == null ? null : shoppingItem.Category.Name.GetDisplayWithIcon();
             Title = IsEditMode ? "Edit Item" : "Add Item";
         }
 
@@ -123,12 +135,16 @@ namespace Listly.ViewModel
 
             var hasNameChanged = !string.Equals(_shoppingItem.Name, trimmedName, StringComparison.Ordinal);
             var hasQuantityChanged = _shoppingItem.Quantity != Quantity || _shoppingItem.Unit != Unit;
+            var hasCategoryChanged = _shoppingItem.Category.Name.GetDisplayName() != SelectedCategory;
 
-            if (hasNameChanged || hasQuantityChanged)
+            if (hasNameChanged || hasQuantityChanged || hasCategoryChanged)
             {
                 _shoppingItem.Name = trimmedName;
                 _shoppingItem.Quantity = Quantity;
                 _shoppingItem.Unit = Unit;
+
+                var category = CategoryHelper.FromDisplayNameAndIcon(SelectedCategory);
+                _shoppingItem.Category = new ItemCategory(category);
 
                 await _shoppingItemStore.UpdateShoppingItemAsync(_shoppingItem);
                 WeakReferenceMessenger.Default.Send(new ShoppingItemUpdatedMessage(_shoppingItem));
@@ -137,7 +153,8 @@ namespace Listly.ViewModel
 
         private async Task CreateNewItem(string trimmedName)
         {
-            var shoppingItem = new ShoppingItem(ShoppingListId, trimmedName, Quantity, Unit);
+            var category = SelectedCategory != null ? CategoryHelper.FromDisplayNameAndIcon(SelectedCategory) : Category.Other;
+            var shoppingItem = new ShoppingItem(ShoppingListId, trimmedName, Quantity, Unit, new ItemCategory(category));
 
             await _shoppingItemStore.CreateShoppingItemAsync(shoppingItem);
             WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
@@ -158,6 +175,13 @@ namespace Listly.ViewModel
         }
 
         partial void OnUnitChanged(string? value)
+        {
+            OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(HasChanges));
+            SaveCommand.NotifyCanExecuteChanged();
+        }
+
+        partial void OnSelectedCategoryChanged(string value)
         {
             OnPropertyChanged(nameof(CanSave));
             OnPropertyChanged(nameof(HasChanges));

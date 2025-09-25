@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Listly.Messages
 {
-    internal class ShoppingItemUpdatedMessage : ValueChangedMessage<ShoppingItem>
+    public class ShoppingItemUpdatedMessage : ValueChangedMessage<ShoppingItem>
     {
         public ShoppingItemUpdatedMessage(ShoppingItem value) : base(value) { }
     }

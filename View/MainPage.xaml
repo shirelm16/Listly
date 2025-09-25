@@ -81,7 +81,7 @@
                                    Padding="0"
                                    HasShadow="False">
                                 <Label Text="👤+" 
-                                       FontSize="14" 
+                                       FontSize="13"
                                        TextColor="#2196F3"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"/>      
@@ -100,7 +100,7 @@
                                    Padding="0"
                                    HasShadow="False">
                                 <Label Text="✏️" 
-                                       FontSize="14" 
+                                       FontSize="13" 
                                        TextColor="#2196F3"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"/>
@@ -119,7 +119,7 @@
                                    Padding="0"
                                    HasShadow="False">
                                 <Label Text="🗑️" 
-                                       FontSize="14" 
+                                       FontSize="13" 
                                        TextColor="#F44336"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"/>
