@@ -112,13 +112,13 @@ namespace Listly.Model
         private static readonly Dictionary<Category, (string DisplayName, string Icon)> _categoryInfo = new()
         {
             { Category.Bakery, ("Bakery", "🥖") },
-            { Category.Bakery, ("Beverages", "🥛") },
+            { Category.Beverages, ("Beverages", "🥛") },
             { Category.CansAndJars, ("Cans & Jars", "🥫") },
             { Category.CleaningAndLaundry, ("Cleaning & Laundry", "🧼") },
             { Category.Clothing, ("Clothing", "👕") },
             { Category.CoffeeAndTea, ("Coffee & Tea", "☕️") },
             { Category.DairyAndEggs, ("Dairy & Eggs", "🧀") },
-            { Category.DairyAndEggs, ("Dry Goods", "🌾") },
+            { Category.DryGoods, ("Dry Goods", "🌾") },
             { Category.Electronics, ("Electronics", "📺") },
             { Category.Frozen, ("Frozen", "❄️") },
             { Category.FruitAndVegetables, ("Fruit & Vegetables", "🍅") },
