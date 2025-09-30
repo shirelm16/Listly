@@ -196,6 +196,8 @@ namespace Listly.ViewModel
             LastPurchasedItem = item;
             ShowUndoToast = true;
 
+            await Task.Delay(700);
+
             _activeBuckets.RemoveItem(item);
             _purchasedItems.Add(item);
             UpdateItemCollections();
