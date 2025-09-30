@@ -28,6 +28,7 @@ namespace Listly.ViewModel
         public bool CanSave => !string.IsNullOrWhiteSpace(Name?.Trim()) && (!IsEditMode || HasChanges);
 
         public List<string> Categories { get; set; }
+        public List<Priority> Priorities { get; set; }
 
         [ObservableProperty]
         string name;
@@ -39,7 +40,13 @@ namespace Listly.ViewModel
         string? unit;
 
         [ObservableProperty]
-        string selectedCategory;
+        string? selectedCategory;
+
+        [ObservableProperty]
+        Priority? itemPriority;
+
+        [ObservableProperty]
+        bool? hasPriority;
 
 
         public bool HasChanges
@@ -48,7 +55,8 @@ namespace Listly.ViewModel
             {
                 return !string.Equals(_shoppingItem?.Name, Name?.Trim(), StringComparison.Ordinal) ||
                        _shoppingItem?.Quantity != Quantity || _shoppingItem?.Unit != Unit || 
-                       _shoppingItem?.Category?.Name.GetDisplayName() != SelectedCategory;
+                       _shoppingItem?.Category?.Name.GetDisplayName() != SelectedCategory ||
+                       _shoppingItem?.Priority != ItemPriority || _shoppingItem?.HasPriority != HasPriority;
             }
         }
 
@@ -63,7 +71,10 @@ namespace Listly.ViewModel
             Categories = Enum.GetValues<Category>()
                 .Select(e => e.GetDisplayWithIcon())
                 .ToList();
-            SelectedCategory = shoppingItem?.Category?.Name == null ? null : shoppingItem.Category.Name.GetDisplayWithIcon();
+            Priorities = Enum.GetValues<Priority>().ToList();
+            HasPriority = shoppingItem?.HasPriority ?? false;
+            ItemPriority = shoppingItem?.Priority;
+            SelectedCategory = shoppingItem?.Category.Name.GetDisplayWithIcon();
             Title = IsEditMode ? "Edit Item" : "Add Item";
         }
 
@@ -136,12 +147,15 @@ namespace Listly.ViewModel
             var hasNameChanged = !string.Equals(_shoppingItem.Name, trimmedName, StringComparison.Ordinal);
             var hasQuantityChanged = _shoppingItem.Quantity != Quantity || _shoppingItem.Unit != Unit;
             var hasCategoryChanged = _shoppingItem.Category.Name.GetDisplayName() != SelectedCategory;
+            var hasPriorityChanged = _shoppingItem.HasPriority != HasPriority || _shoppingItem.Priority != ItemPriority;
 
-            if (hasNameChanged || hasQuantityChanged || hasCategoryChanged)
+            if (hasNameChanged || hasQuantityChanged || hasCategoryChanged || hasPriorityChanged)
             {
                 _shoppingItem.Name = trimmedName;
                 _shoppingItem.Quantity = Quantity;
                 _shoppingItem.Unit = Unit;
+                _shoppingItem.HasPriority = HasPriority ?? false;
+                _shoppingItem.Priority = HasPriority == true ? ItemPriority.Value : Priority.Medium;
 
                 var category = CategoryHelper.FromDisplayNameAndIcon(SelectedCategory);
                 _shoppingItem.Category = new ItemCategory(category);
@@ -154,7 +168,8 @@ namespace Listly.ViewModel
         private async Task CreateNewItem(string trimmedName)
         {
             var category = SelectedCategory != null ? CategoryHelper.FromDisplayNameAndIcon(SelectedCategory) : Category.Other;
-            var shoppingItem = new ShoppingItem(ShoppingListId, trimmedName, Quantity, Unit, new ItemCategory(category));
+            var priority = HasPriority == true ? ItemPriority.Value : Priority.Medium;
+            var shoppingItem = new ShoppingItem(ShoppingListId, trimmedName, Quantity, Unit, new ItemCategory(category), priority, HasPriority ?? false);
 
             await _shoppingItemStore.CreateShoppingItemAsync(shoppingItem);
             WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
@@ -186,6 +201,25 @@ namespace Listly.ViewModel
             OnPropertyChanged(nameof(CanSave));
             OnPropertyChanged(nameof(HasChanges));
             SaveCommand.NotifyCanExecuteChanged();
+        }
+
+        partial void OnItemPriorityChanged(Priority? value)
+        {
+            OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(HasChanges));
+            SaveCommand.NotifyCanExecuteChanged();
+        }
+
+        partial void OnHasPriorityChanged(bool? value)
+        {
+            OnPropertyChanged(nameof(CanSave));
+            OnPropertyChanged(nameof(HasChanges));
+            SaveCommand.NotifyCanExecuteChanged();
+
+            if (value == false)
+            {
+                ItemPriority = Priority.Medium;
+            }
         }
     }
 }

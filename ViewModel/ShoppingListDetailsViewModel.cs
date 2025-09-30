@@ -22,15 +22,12 @@ namespace Listly.ViewModel
     public partial class ShoppingListDetailsViewModel : BaseViewModel, IDisposable
     {
         private readonly IShoppingItemStore _shoppingItemStore;
-        private BucketSortService<ShoppingItem, Category> _activeBuckets;
+        private IBucketSortService<ShoppingItem> _activeBuckets;
         private List<ShoppingItem> _purchasedItems;
 
-        public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore, IShoppingItemsSortingService sortingItemsService)
+        public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore)
         {
             _shoppingItemStore = shoppingItemStore;
-
-            var categoryOrder = Enum.GetValues<Category>().OrderBy(c => c);
-            _activeBuckets = new BucketSortService<ShoppingItem, Category>(item => item?.Category == null ? Category.Other : item.Category.Name, categoryOrder);
             _purchasedItems = shoppingList == null ? [] :
                 shoppingList.Items.Where(item => item.IsPurchased).ToList();
             
@@ -44,6 +41,7 @@ namespace Listly.ViewModel
                     item.ItemPurchased += ShoppingItem_OnItemPurchased;
                     item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
                     item.CategoryChanged += ShoppingItem_OnCategoryChanged;
+                    item.PriorityChanged += ShoppingItem_OnPriorityChanged;
                    
                     _activeBuckets.AddItem(item);
                     UpdateItemCollections();
@@ -60,6 +58,20 @@ namespace Listly.ViewModel
                 itemChanged.Quantity = item.Quantity;
                 itemChanged.Category = item.Category;
             });
+        }
+
+        private void SetActiveItemsBySortType(SortType? sortType)
+        {
+            if(sortType == null || sortType == SortType.Category)
+            {
+                var categoryOrder = Enum.GetValues<Category>().OrderBy(c => c);
+                _activeBuckets = new BucketSortService<ShoppingItem, Category>(item => item?.Category == null ? Category.Other : item.Category.Name, categoryOrder);
+            }
+            else if(sortType == SortType.Priority)
+            {
+                var priorityOrder = new[] { Priority.High, Priority.Medium, Priority.Low };
+                _activeBuckets = new BucketSortService<ShoppingItem, Priority>(item => item?.Priority == null ? Priority.Medium : item.Priority, priorityOrder);
+            }
         }
 
         [ObservableProperty]
@@ -85,6 +97,33 @@ namespace Listly.ViewModel
 
         [ObservableProperty]
         private string purchasedSectionTitle = "Purchased (0 items)";
+
+        [RelayCommand]
+        private async Task ShowSortOptions()
+        {
+            var categoryText = ShoppingList.SortType == SortType.Category ? "✓ Category" : "Category";
+            var priorityText = ShoppingList.SortType == SortType.Priority ? "✓ Priority" : "Priority";
+            var result = await Shell.Current.DisplayActionSheet(
+                "Sort by",
+                "Cancel",
+                null,
+                categoryText,
+                priorityText);
+
+            if (result != "Cancel" && result != null)
+            {
+                var cleanResult = result.Replace("✓ ", "");
+
+                var sortType = cleanResult switch
+                {
+                    "Category" => SortType.Category,
+                    "Priority" => SortType.Priority,
+                    _ => SortType.Category
+                };
+
+                ChangeSortType(sortType);
+            }
+        }
 
         [RelayCommand]
         async Task EditItem(ShoppingItem shoppingItem)
@@ -158,7 +197,7 @@ namespace Listly.ViewModel
 
         partial void OnShoppingListChanged(ShoppingList value)
         {
-            _activeBuckets.Clear();
+            SetActiveItemsBySortType(shoppingList?.SortType);
             _purchasedItems = new List<ShoppingItem>();
 
             if (value?.Items != null)
@@ -169,6 +208,7 @@ namespace Listly.ViewModel
                     item.ItemPurchased += ShoppingItem_OnItemPurchased;
                     item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
                     item.CategoryChanged += ShoppingItem_OnCategoryChanged;
+                    item.PriorityChanged += ShoppingItem_OnPriorityChanged;
                     
                     if(item.IsPurchased)
                     {
@@ -236,8 +276,20 @@ namespace Listly.ViewModel
 
         private void ShoppingItem_OnCategoryChanged(ShoppingItem item)
         {
-            _activeBuckets.UpdateItem(item);
-            UpdateItemCollections();
+            if (ShoppingList.SortType == SortType.Category)
+            {
+                _activeBuckets.UpdateItem(item);
+                UpdateItemCollections();
+            }
+        }
+
+        private void ShoppingItem_OnPriorityChanged(ShoppingItem item)
+        {
+            if (ShoppingList.SortType == SortType.Priority)
+            {
+                _activeBuckets.UpdateItem(item);
+                UpdateItemCollections();
+            }
         }
 
         private void UpdateItemCollections()
@@ -250,6 +302,23 @@ namespace Listly.ViewModel
             if(PurchasedItems.Count == 0)
             {
                 IsPurchasedSectionExpanded = false;
+            }
+        }
+
+        private void ChangeSortType(SortType sortType)
+        {
+            if ((ShoppingList.SortType == null && sortType != SortType.Category) || sortType != ShoppingList.SortType)
+            {
+                SetActiveItemsBySortType(sortType);
+                foreach (var item in shoppingList.Items)
+                {
+                    if(!item.IsPurchased)
+                        _activeBuckets.AddItem(item);
+                }
+                ActiveItems = new ObservableCollection<ShoppingItem>(_activeBuckets.GetSortedItems());
+
+                ShoppingList.SortType = sortType;
+                WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
             }
         }
 
@@ -277,6 +346,7 @@ namespace Listly.ViewModel
                         item.ItemPurchased -= ShoppingItem_OnItemPurchased;
                         item.ItemUnpurchased -= ShoppingItem_OnItemUnpurchased;
                         item.CategoryChanged -= ShoppingItem_OnCategoryChanged;
+                        item.PriorityChanged -= ShoppingItem_OnPriorityChanged;
                     }
                 }
             }

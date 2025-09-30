@@ -31,6 +31,12 @@ namespace Listly.Store
         [FirestoreProperty("category")]
         public string Category { get; set; }
 
+        [FirestoreProperty("has_priority")]
+        public bool HasPriority { get; set; }
+
+        [FirestoreProperty("priority")]
+        public string Priority { get; set; }
+
 
         public static ShoppingItemDocument FromShoppingItem(ShoppingItem item) => new()
         {
@@ -40,7 +46,9 @@ namespace Listly.Store
             Quantity = item.Quantity,
             Unit = item.Unit,
             IsPurchased = item.IsPurchased,
-            Category = item.Category == null ? Model.Category.Other.GetDisplayName() : item.Category.Name.GetDisplayName()
+            Category = item.Category == null ? Model.Category.Other.GetDisplayName() : item.Category.Name.GetDisplayName(),
+            HasPriority = item.HasPriority,
+            Priority = item.Priority.ToString(),
         };
 
         public ShoppingItem ToShoppingItem() => new()
@@ -51,7 +59,9 @@ namespace Listly.Store
             Quantity = Quantity,
             Unit = Unit,
             IsPurchased = IsPurchased,
-            Category = Category == null ? new ItemCategory() : new ItemCategory(CategoryHelper.FromDisplayName(Category))
+            Category = Category == null ? new ItemCategory() : new ItemCategory(CategoryHelper.FromDisplayName(Category)),
+            HasPriority = HasPriority,
+            Priority = Enum.GetValues<Priority>().FirstOrDefault(e => e.ToString() == Priority)
         };
     }
 }

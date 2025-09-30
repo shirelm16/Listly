@@ -15,9 +15,6 @@ namespace Listly.Model
         [Indexed]
         public Guid ShoppingListId { get; set; }
 
-        [Ignore]
-        public string AddedBy { get; set; }
-
         [ObservableProperty]
         string name;
 
@@ -33,9 +30,15 @@ namespace Listly.Model
         [ObservableProperty]
         ItemCategory category = new ItemCategory();
 
+        [ObservableProperty]
+        private bool hasPriority = false;
+
+        [ObservableProperty]
+        Priority priority = Priority.Medium;
+
         public ShoppingItem() { }
 
-        public ShoppingItem(Guid shoppingListId, string name, double? quantity, string? unit, ItemCategory? category)
+        public ShoppingItem(Guid shoppingListId, string name, double? quantity, string? unit, ItemCategory? category, Priority priority, bool hasPriority)
         {
             Id = Guid.NewGuid();
             ShoppingListId = shoppingListId;
@@ -43,6 +46,8 @@ namespace Listly.Model
             Quantity = quantity;
             Unit = unit;
             Category = category;
+            Priority = priority;
+            HasPriority = hasPriority;
         }
         
         public event Action<ShoppingItem>? ItemPurchased;
@@ -50,6 +55,8 @@ namespace Listly.Model
         public event Action<ShoppingItem>? ItemUnpurchased;
 
         public event Action<ShoppingItem>? CategoryChanged;
+
+        public event Action<ShoppingItem>? PriorityChanged;
 
         partial void OnIsPurchasedChanged(bool value)
         {
@@ -67,6 +74,18 @@ namespace Listly.Model
         {
             CategoryChanged?.Invoke(this);
         }
+
+        partial void OnPriorityChanged(Priority oldValue, Priority newValue)
+        {
+            PriorityChanged?.Invoke(this);
+        }
+    }
+
+    public enum Priority
+    {
+        High,
+        Medium,
+        Low
     }
 
     public enum Category

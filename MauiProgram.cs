@@ -58,7 +58,6 @@ namespace Listly
             builder.Services.AddSingleton<IShoppingListStore, FirestoreShoppingListStore>();
             builder.Services.AddSingleton<IShoppingItemStore, FirestoreShoppingListStore>();
             builder.Services.AddSingleton<IUsersStore, FirestoreUsersStore>();
-            builder.Services.AddSingleton<IShoppingItemsSortingService, ShoppingItemsSortingService>();
 
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddSingleton<ProfilePage>();

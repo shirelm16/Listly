@@ -35,6 +35,9 @@ namespace Listly.Store
         [FirestoreProperty("collaborators")]
         public List<string> Collaborators { get; set; }
 
+        [FirestoreProperty("sortType")]
+        public string SortType { get; set; }
+
         public static ShoppingListDocument FromShoppingList(ShoppingList list)
         {
             return new ShoppingListDocument()
@@ -46,7 +49,8 @@ namespace Listly.Store
                 LastModifiedUser = list.LastModifiedUser,
                 ShareId = list.ShareId,
                 ShareExpiresAtUnix = list.ShareExpiresAt == null ? null : ((DateTimeOffset)list.ShareExpiresAt).ToUnixTimeSeconds(),
-                Collaborators = list.Collaborators
+                Collaborators = list.Collaborators,
+                SortType = list.SortType?.ToString() ?? Model.SortType.Category.ToString()
             };
         }
 
@@ -59,7 +63,8 @@ namespace Listly.Store
             LastModifiedUser = LastModifiedUser,
             ShareId = ShareId,
             ShareExpiresAt = ShareExpiresAtUnix == null ? null : DateTimeOffset.FromUnixTimeSeconds(ShareExpiresAtUnix.Value).DateTime,
-            Collaborators = Collaborators
+            Collaborators = Collaborators,
+            SortType = Enum.GetValues<SortType>().FirstOrDefault(e => e.ToString() == SortType)
         };
     }
 }

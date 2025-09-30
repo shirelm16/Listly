@@ -7,7 +7,16 @@ using System.Threading.Tasks;
 
 namespace Listly.Services
 {
-    public class BucketSortService<TItem, TKey>
+    public interface IBucketSortService<TItem>
+    {
+        void AddItem(TItem item);
+        void RemoveItem(TItem item);
+        void UpdateItem(TItem item);
+        IEnumerable<TItem> GetSortedItems();
+        void Clear();
+    }
+
+    public class BucketSortService<TItem, TKey> : IBucketSortService<TItem>
         where TItem : class
         where TKey : notnull
     {

@@ -32,6 +32,7 @@ namespace Listly.Model
         public List<string> Collaborators { get; set; } = new();
         public bool IsShared => !string.IsNullOrEmpty(ShareId);
         public bool IsCollaborated => Collaborators.Any();
+        public SortType? SortType { get; set; }
 
         public ShoppingList() { }
 
@@ -40,5 +41,11 @@ namespace Listly.Model
             Id = Guid.NewGuid();
             Name = name;
         }
+    }
+
+    public enum SortType
+    {
+        Category,
+        Priority
     }
 }
