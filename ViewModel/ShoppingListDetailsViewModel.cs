@@ -22,13 +22,18 @@ namespace Listly.ViewModel
     public partial class ShoppingListDetailsViewModel : BaseViewModel, IDisposable
     {
         private readonly IShoppingItemStore _shoppingItemStore;
-        private readonly IShoppingItemsSortingService _sortingItemsService;
+        private BucketSortService<ShoppingItem, Category> _activeBuckets;
+        private List<ShoppingItem> _purchasedItems;
 
         public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore, IShoppingItemsSortingService sortingItemsService)
         {
             _shoppingItemStore = shoppingItemStore;
-            _sortingItemsService = sortingItemsService;
 
+            var categoryOrder = Enum.GetValues<Category>().OrderBy(c => c);
+            _activeBuckets = new BucketSortService<ShoppingItem, Category>(item => item?.Category == null ? Category.Other : item.Category.Name, categoryOrder);
+            _purchasedItems = shoppingList == null ? [] :
+                shoppingList.Items.Where(item => item.IsPurchased).ToList();
+            
             WeakReferenceMessenger.Default.Register<ShoppingItemCreatedMessage>(this, async (r, m) =>
             {
                 var item = m.Value;
@@ -39,6 +44,8 @@ namespace Listly.ViewModel
                     item.ItemPurchased += ShoppingItem_OnItemPurchased;
                     item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
                     item.CategoryChanged += ShoppingItem_OnCategoryChanged;
+                   
+                    _activeBuckets.AddItem(item);
                     UpdateItemCollections();
                     WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
                 }
@@ -65,6 +72,7 @@ namespace Listly.ViewModel
         private bool showUndoToast;
 
         private CancellationTokenSource? _hideToastCancellation;
+        private CancellationTokenSource? _updateCancellation;
 
         [ObservableProperty]
         private ObservableCollection<ShoppingItem> activeItems = new();
@@ -103,6 +111,15 @@ namespace Listly.ViewModel
             if (!confirmed)
                 return;
 
+            if (shoppingItem.IsPurchased)
+            {
+                _purchasedItems.Remove(shoppingItem);
+            }
+            else
+            {
+                _activeBuckets.RemoveItem(shoppingItem);
+            }
+            
             ShoppingList.Items.Remove(shoppingItem);
             await _shoppingItemStore.DeleteShoppingItemAsync(shoppingItem.ShoppingListId, shoppingItem.Id);
             UpdateItemCollections();
@@ -121,13 +138,16 @@ namespace Listly.ViewModel
         {
             if (LastPurchasedItem != null)
             {
-                _hideToastCancellation?.Cancel();
-
+                HideUndoToast();
                 LastPurchasedItem.IsPurchased = false;
-                UpdateItemCollections();
-                ShowUndoToast = false;
                 LastPurchasedItem = null;
             }
+        }
+
+        private void HideUndoToast()
+        {
+            _hideToastCancellation?.Cancel();
+            ShowUndoToast = false;
         }
 
         [RelayCommand]
@@ -138,6 +158,9 @@ namespace Listly.ViewModel
 
         partial void OnShoppingListChanged(ShoppingList value)
         {
+            _activeBuckets.Clear();
+            _purchasedItems = new List<ShoppingItem>();
+
             if (value?.Items != null)
             {
                 foreach (var item in value.Items)
@@ -146,6 +169,15 @@ namespace Listly.ViewModel
                     item.ItemPurchased += ShoppingItem_OnItemPurchased;
                     item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
                     item.CategoryChanged += ShoppingItem_OnCategoryChanged;
+                    
+                    if(item.IsPurchased)
+                    {
+                        _purchasedItems.Add(item);
+                    }
+                    else
+                    {
+                        _activeBuckets.AddItem(item);
+                    }
                 }
                 UpdateItemCollections();
             }
@@ -164,6 +196,8 @@ namespace Listly.ViewModel
             LastPurchasedItem = item;
             ShowUndoToast = true;
 
+            _activeBuckets.RemoveItem(item);
+            _purchasedItems.Add(item);
             UpdateItemCollections();
 
             // Cancel any existing hide timer
@@ -188,35 +222,30 @@ namespace Listly.ViewModel
 
         private void ShoppingItem_OnItemUnpurchased(ShoppingItem item)
         {
+            _activeBuckets.AddItem(item);
+            _purchasedItems.Remove(item);
+
             UpdateItemCollections();
             if (LastPurchasedItem == item)
             {
-                UndoLastPurchase();
+                HideUndoToast();
             }
         }
 
         private void ShoppingItem_OnCategoryChanged(ShoppingItem item)
         {
+            _activeBuckets.UpdateItem(item);
             UpdateItemCollections();
         }
 
         private void UpdateItemCollections()
         {
-            var activeItems = ShoppingList.Items
-                .Where(item => !item.IsPurchased);
-
-            var sortedActiveItems = _sortingItemsService.Sort(activeItems);
-
-            ActiveItems = new ObservableCollection<ShoppingItem>(sortedActiveItems);
-
-            var purchasedItems = ShoppingList.Items
-                .Where(item => item.IsPurchased);
-
-            PurchasedItems = new ObservableCollection<ShoppingItem>(purchasedItems);
+            ActiveItems = new ObservableCollection<ShoppingItem>(_activeBuckets.GetSortedItems());
+            PurchasedItems = new ObservableCollection<ShoppingItem>(_purchasedItems);
 
             PurchasedSectionTitle = $"Purchased ({PurchasedItems.Count} items)";
 
-            if(PurchasedItems.Count == 0) 
+            if(PurchasedItems.Count == 0)
             {
                 IsPurchasedSectionExpanded = false;
             }
