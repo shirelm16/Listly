@@ -61,7 +61,7 @@ namespace Listly.Store
             IsPurchased = IsPurchased,
             Category = Category == null ? new ItemCategory() : new ItemCategory(CategoryHelper.FromDisplayName(Category)),
             HasPriority = HasPriority,
-            Priority = Enum.GetValues<Priority>().FirstOrDefault(e => e.ToString() == Priority)
+            Priority = Priority == null ? Model.Priority.Medium : Enum.GetValues<Priority>().FirstOrDefault(e => e.ToString() == Priority)
         };
     }
 }
