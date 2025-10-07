@@ -168,17 +168,21 @@
                                      Spacing="2" 
                                      Margin="12,0,0,0"
                                      VerticalOptions="Center">
-                            <HorizontalStackLayout Spacing="5">
-                                <Label Text="{Binding Priority, Converter={StaticResource PriorityToIconConverter}}"
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="5">
+                                <Label Grid.Column="0"
+                                       Text="{Binding Priority, Converter={StaticResource PriorityToIconConverter}}"
                                        TextColor="Red"
                                        FontSize="16"
                                        IsVisible="{Binding HasPriority}"
                                        VerticalOptions="Center"/>
-                                <Label Text="{Binding Name}"
-                                   TextColor="Black"
-                                   FontSize="16"
-                                   TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
-                            </HorizontalStackLayout>
+                                <Label Grid.Column="1"
+                                       Text="{Binding Name}"
+                                       LineBreakMode="WordWrap"
+                                       MaxLines="2"
+                                       TextColor="Black"
+                                       FontSize="16"
+                                       TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
+                            </Grid>
                             
                             <Label FontSize="14"
                                    TextColor="{StaticResource OnSurfaceVariant}"

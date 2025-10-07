@@ -108,9 +108,9 @@ namespace Listly.ViewModel
                     return;
                 }
 
-                if (trimmedName.Length > 200)
+                if (trimmedName.Length > 50)
                 {
-                    await Shell.Current.DisplayAlert("Name Too Long", "Item name cannot exceed 200 characters.", "OK");
+                    await Shell.Current.DisplayAlert("Name Too Long", "Item name cannot exceed 50 characters.", "OK");
                     return;
                 }
 
