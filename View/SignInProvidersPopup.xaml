@@ -31,12 +31,6 @@
                     Command="{Binding SignInWithGoogleCommand}"
                     IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}" />
 
-            <Button Text="Continue with Facebook"
-                    BackgroundColor="#4267B2"
-                    TextColor="White"
-                    Command="{Binding SignInWithFacebookCommand}"
-                    IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}" />
-
             <Button Text="Cancel"
                     BackgroundColor="Transparent"
                     TextColor="{StaticResource OnSurface}"

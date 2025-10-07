@@ -2,7 +2,6 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using Plugin.Firebase.Auth.Facebook;
 using Plugin.Firebase.Auth.Google;
 
 namespace Listly
@@ -38,7 +37,6 @@ namespace Listly
         {
             base.OnActivityResult(requestCode, resultCode, data);
             FirebaseAuthGoogleImplementation.HandleActivityResultAsync(requestCode, resultCode, data);
-            FirebaseAuthFacebookImplementation.HandleActivityResultAsync(requestCode, resultCode, data);
         }
 
         private void HandleIntent(Intent intent)

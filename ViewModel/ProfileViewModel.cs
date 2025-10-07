@@ -5,7 +5,6 @@ using Listly.Store;
 using Listly.View;
 using Mopups.Services;
 using Plugin.Firebase.Auth;
-using Plugin.Firebase.Auth.Facebook;
 using Plugin.Firebase.Auth.Google;
 using Plugin.Firebase.CloudMessaging;
 
@@ -15,17 +14,14 @@ namespace Listly.ViewModel
     {
         private readonly IFirebaseAuth _auth;
         private readonly IFirebaseAuthGoogle _googleAuth;
-        private readonly IFirebaseAuthFacebook _facebookAuth;
         private readonly IUsersStore _usersStore;
 
         public ProfileViewModel(IFirebaseAuth auth, 
             IFirebaseAuthGoogle googleAuth, 
-            IFirebaseAuthFacebook firebaseAuth,
             IUsersStore usersStore)
         {
             _auth = auth;
             _googleAuth = googleAuth;
-            _facebookAuth = firebaseAuth;
             _usersStore = usersStore;
             UpdateUserState();
         }
@@ -91,45 +87,6 @@ namespace Listly.ViewModel
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Unexpected error during Google sign-in: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-
-                await MainThread.InvokeOnMainThreadAsync(async () =>
-                {
-                    await Application.Current.MainPage.DisplayAlert("Error", "An unexpected error occurred. Please try again.", "OK");
-                });
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
-
-        [RelayCommand]
-        public async Task SignInWithFacebook()
-        {
-            IsLoading = true;
-
-            try
-            {
-                await _facebookAuth.SignInWithFacebookAsync();
-                await CreateOrUpdateUserInDb();
-
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    UpdateUserState();
-                    MopupService.Instance.PopAsync();
-                });
-            }
-            catch (Plugin.Firebase.Core.Exceptions.FirebaseAuthException ex)
-            {
-                await MainThread.InvokeOnMainThreadAsync(async () =>
-                {
-                    await Application.Current.MainPage.DisplayAlert("Error", ex.Message, "OK");
-                });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Unexpected error during Facebook sign-in: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
 
                 await MainThread.InvokeOnMainThreadAsync(async () =>

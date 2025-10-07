@@ -14,8 +14,6 @@ using Plugin.Firebase.Bundled.Shared;
 using Plugin.Firebase.Firestore;
 using Plugin.Firebase.CloudMessaging;
 using Plugin.Firebase.Auth.Google;
-using Plugin.Firebase.Auth.Facebook;
-using Xamarin.Facebook;
 using Listly.Services;
 
 namespace Listly
@@ -82,7 +80,6 @@ namespace Listly
 
             builder.Services.AddSingleton(_ => CrossFirebaseAuth.Current);
             builder.Services.AddSingleton(_ => CrossFirebaseAuthGoogle.Current);
-            builder.Services.AddSingleton(_ => CrossFirebaseAuthFacebook.Current);
             builder.Services.AddSingleton(_ => CrossFirebaseFirestore.Current);
             builder.Services.AddSingleton(_ => CrossFirebaseCloudMessaging.Current);
             FirebaseAuthGoogleImplementation.Initialize(Consts.WebClientId);
