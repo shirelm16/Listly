@@ -145,7 +145,7 @@
                 FontSize="16"
                 FontAttributes="Bold"
                 Command="{Binding AddItemCommand}"
-                IsVisible="{Binding IsNormalMode}">>
+                IsVisible="{Binding IsNormalMode}">
             <Button.Shadow>
                 <Shadow Brush="{StaticResource Primary}" Opacity="0.3" Radius="12" Offset="0,4"/>
             </Button.Shadow>
@@ -208,53 +208,53 @@
                     <Border.Shadow>
                         <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
                     </Border.Shadow>
-                    <Border.Behaviors>
-                        <toolkit:TouchBehavior LongPressCommand="{Binding Source={x:Reference Page}, Path=BindingContext.ItemLongPressCommand}"
-                                               LongPressCommandParameter="{Binding .}"
-                                               Command="{Binding Source={x:Reference Page}, Path=BindingContext.ItemTappedCommand}"
-                                               CommandParameter="{Binding .}"/>
-                    </Border.Behaviors>
                     <Border.BackgroundColor>
                         <MultiBinding Converter="{StaticResource ItemSelectedToColorConverter}">
                             <Binding Source="{x:Reference Page}" Path="BindingContext.SelectedItemIds"/>
                             <Binding Path="Id"/>
                         </MultiBinding>
                     </Border.BackgroundColor>
-                    <Grid>
-                        <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
-                            <CheckBox Grid.Column="0"
-                                      Color="{StaticResource Primary}"
-                                      IsChecked="{Binding IsPurchased, Mode=TwoWay}"
-                                      IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsNormalMode}"
-                                      VerticalOptions="Center"/>
-                            <Label Grid.Column="1" 
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                        <CheckBox Grid.Column="0"
+                                  Color="{StaticResource Primary}"
+                                  IsChecked="{Binding IsPurchased, Mode=TwoWay}"
+                                  IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsNormalMode}"
+                                  VerticalOptions="Center"/>
+                        <Grid Grid.Column="1" ColumnDefinitions="Auto,Auto">
+                            <Grid.Behaviors>
+                                <toolkit:TouchBehavior LongPressCommand="{Binding Source={x:Reference Page}, Path=BindingContext.ItemLongPressCommand}"
+                                                   LongPressCommandParameter="{Binding .}"
+                                                   Command="{Binding Source={x:Reference Page}, Path=BindingContext.ItemTappedCommand}"
+                                                   CommandParameter="{Binding .}"/>
+                            </Grid.Behaviors>
+                            <Label Grid.Column="0"
                                    Text="{Binding Category.Name, Converter={StaticResource CategoryToIconConverter}}"
                                    FontSize="18"
                                    VerticalOptions="Center"
                                    Margin="5,0,8,0"/>
-                            <StackLayout Grid.Column="2" 
+                            <StackLayout Grid.Column="1" 
                                          Spacing="2" 
                                          Margin="12,0,0,0"
                                          VerticalOptions="Center">
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="5">
                                     <Label Grid.Column="0"
-                                           Text="{Binding Priority, Converter={StaticResource PriorityToIconConverter}}"
-                                           TextColor="Red"
-                                           FontSize="16"
-                                           IsVisible="{Binding HasPriority}"
-                                           VerticalOptions="Center"/>
+                                               Text="{Binding Priority, Converter={StaticResource PriorityToIconConverter}}"
+                                               TextColor="Red"
+                                               FontSize="16"
+                                               IsVisible="{Binding HasPriority}"
+                                               VerticalOptions="Center"/>
                                     <Label Grid.Column="1"
-                                           Text="{Binding Name}"
-                                           LineBreakMode="WordWrap"
-                                           MaxLines="2"
-                                           TextColor="Black"
-                                           FontSize="16"
-                                           TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
+                                               Text="{Binding Name}"
+                                               LineBreakMode="WordWrap"
+                                               MaxLines="2"
+                                               TextColor="Black"
+                                               FontSize="16"
+                                               TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
                                 </Grid>
 
                                 <Label FontSize="14"
-                                       TextColor="{StaticResource OnSurfaceVariant}"
-                                       IsVisible="{Binding Quantity, Converter={StaticResource NullOrEmptyToBoolConverter}}">
+                                           TextColor="{StaticResource OnSurfaceVariant}"
+                                           IsVisible="{Binding Quantity, Converter={StaticResource NullOrEmptyToBoolConverter}}">
                                     <Label.Text>
                                         <MultiBinding StringFormat="Qty: {0}{1}">
                                             <Binding Path="Quantity" />
@@ -263,27 +263,27 @@
                                     </Label.Text>
                                 </Label>
                             </StackLayout>
-                            <Frame Grid.Column="3"
-                                   BackgroundColor="Transparent"
-                                   BorderColor="Transparent"
-                                   WidthRequest="40"
-                                   HeightRequest="40"
-                                   CornerRadius="20"
-                                   Padding="0"
-                                   HasShadow="False"
-                                   IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsNormalMode}">
-                                <Label Text="✏️" 
+                        </Grid>
+                        <Frame Grid.Column="2"
+                                BackgroundColor="Transparent"
+                                BorderColor="Transparent"
+                                WidthRequest="40"
+                                HeightRequest="40"
+                                CornerRadius="20"
+                                Padding="0"
+                                HasShadow="False"
+                                IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsNormalMode}">
+                            <Label Text="✏️" 
                                        FontSize="14" 
                                        TextColor="#2196F3"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"/>
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditItemCommand}"
                                                           CommandParameter="{Binding}"/>
-                                </Frame.GestureRecognizers>
-                            </Frame>
-
-                            <Frame Grid.Column="4"
+                            </Frame.GestureRecognizers>
+                        </Frame>
+                        <Frame Grid.Column="3"
                                    BackgroundColor="Transparent"
                                    BorderColor="Transparent"
                                    WidthRequest="40"
@@ -292,17 +292,16 @@
                                    Padding="0"
                                    HasShadow="False"
                                    IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsNormalMode}">
-                                <Label Text="🗑️" 
+                            <Label Text="🗑️" 
                                        FontSize="14" 
                                        TextColor="#F44336"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"/>
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteItemCommand}"
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteItemCommand}"
                                                           CommandParameter="{Binding}"/>
-                                </Frame.GestureRecognizers>
-                            </Frame>
-                        </Grid>
+                            </Frame.GestureRecognizers>
+                        </Frame>
                     </Grid>
                 </Border>
             </DataTemplate>
