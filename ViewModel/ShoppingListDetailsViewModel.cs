@@ -7,14 +7,8 @@ using Listly.Services;
 using Listly.Store;
 using Listly.View;
 using Mopups.Services;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Listly.ViewModel
 {
@@ -97,6 +91,18 @@ namespace Listly.ViewModel
 
         [ObservableProperty]
         private string purchasedSectionTitle = "Purchased (0 items)";
+
+        [ObservableProperty]
+        private bool isSelectionMode = false;
+
+        [ObservableProperty]
+        private HashSet<Guid> selectedItemIds = new();
+
+        [ObservableProperty]
+        private int selectedCount = 0;
+
+        public string SelectionText => $"{SelectedCount} selected";
+        public bool IsNormalMode => !IsSelectionMode;
 
         [RelayCommand]
         private async Task ShowSortOptions()
@@ -195,6 +201,97 @@ namespace Listly.ViewModel
             IsPurchasedSectionExpanded = !IsPurchasedSectionExpanded;
         }
 
+        [RelayCommand]
+        private void ItemLongPress(ShoppingItem item)
+        {
+            if (item == null) return;
+
+            IsSelectionMode = true;
+            SelectedItemIds = new HashSet<Guid>(SelectedItemIds) { item.Id };
+            SelectedCount = SelectedItemIds.Count;
+
+            RefreshCollections();
+        }
+
+        [RelayCommand]
+        private void ItemTapped(ShoppingItem item)
+        {
+            if (item == null) return;
+
+            if (IsSelectionMode)
+            {
+                var newSelection = new HashSet<Guid>(SelectedItemIds);
+
+                if (newSelection.Contains(item.Id))
+                {
+                    newSelection.Remove(item.Id);
+                }
+                else
+                {
+                    newSelection.Add(item.Id);
+                }
+
+                SelectedItemIds = newSelection;
+                SelectedCount = SelectedItemIds.Count;
+                RefreshCollections();
+
+                // Exit selection mode if no items selected
+                if (SelectedCount == 0)
+                {
+                    IsSelectionMode = false;
+                }
+            }
+            else
+            {
+                EditItemCommand.Execute(item);
+            }
+        }
+
+        [RelayCommand]
+        private async Task DeleteSelected()
+        {
+            if (SelectedCount == 0) return;
+
+            var confirmed = await Shell.Current.DisplayAlert(
+                "Delete Items",
+                $"Are you sure you want to delete {SelectedCount} item(s)?",
+                "Delete",
+                "Cancel");
+
+            if (!confirmed) return;
+
+            var itemsToDelete = ShoppingList.Items
+                .Where(item => SelectedItemIds.Contains(item.Id))
+                .ToList();
+
+            foreach (var item in itemsToDelete)
+            {
+                if (item.IsPurchased)
+                {
+                    _purchasedItems.Remove(item);
+                }
+                else
+                {
+                    _activeBuckets.RemoveItem(item);
+                }
+
+                ShoppingList.Items.Remove(item);
+                await _shoppingItemStore.DeleteShoppingItemAsync(item.ShoppingListId, item.Id);
+            }
+
+            UpdateItemCollections();
+            WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
+
+            // Exit selection mode
+            IsSelectionMode = false;
+        }
+
+        [RelayCommand]
+        private void CancelSelection()
+        {
+            IsSelectionMode = false;
+        }
+
         partial void OnShoppingListChanged(ShoppingList value)
         {
             SetActiveItemsBySortType(shoppingList?.SortType);
@@ -221,6 +318,26 @@ namespace Listly.ViewModel
                 }
                 UpdateItemCollections();
             }
+        }
+
+        partial void OnIsSelectionModeChanged(bool value)
+        {
+            OnPropertyChanged(nameof(IsNormalMode));
+
+            // Clear selections when exiting selection mode
+            if (!value)
+            {
+                SelectedItemIds.Clear();
+                SelectedCount = 0;
+                OnPropertyChanged(nameof(SelectionText));
+                OnPropertyChanged(nameof(SelectedItemIds));
+                RefreshCollections();
+            }
+        }
+
+        partial void OnSelectedCountChanged(int value)
+        {
+            OnPropertyChanged(nameof(SelectionText));
         }
 
         private async void ShoppingItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -320,6 +437,13 @@ namespace Listly.ViewModel
                 ShoppingList.SortType = sortType;
                 WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
             }
+        }
+
+        private void RefreshCollections()
+        {
+            // Create new collection instances to trigger UI update
+            ActiveItems = new ObservableCollection<ShoppingItem>(ActiveItems);
+            PurchasedItems = new ObservableCollection<ShoppingItem>(PurchasedItems);
         }
 
         public void Dispose()

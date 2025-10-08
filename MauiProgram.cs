@@ -14,7 +14,7 @@ using Plugin.Firebase.Bundled.Shared;
 using Plugin.Firebase.Firestore;
 using Plugin.Firebase.CloudMessaging;
 using Plugin.Firebase.Auth.Google;
-using Listly.Services;
+using CommunityToolkit.Maui;
 
 namespace Listly
 {
@@ -25,6 +25,7 @@ namespace Listly
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .RegisterFirebaseServices()
                 .ConfigureMauiHandlers(handlers =>
                 {
