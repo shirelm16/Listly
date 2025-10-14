@@ -91,6 +91,12 @@ namespace Listly.ViewModel
         public bool IsNormalMode => !IsSelectionMode;
 
         [RelayCommand]
+        async Task Back()
+        {
+            await Shell.Current.GoToAsync("..");
+        }
+
+        [RelayCommand]
         async Task ShowMoreMenu()
         {
             var popup = new ShoppingListDetailsMenuPopup(this);

@@ -8,8 +8,6 @@
              xmlns:converters="clr-namespace:Listly.Converters"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              BackgroundColor="{StaticResource Background}"
-             Shell.NavBarIsVisible="True"
-             Shell.TabBarIsVisible="False"
              x:Name="Page">
     <Grid RowDefinitions="Auto,*,Auto">
         <!-- Header with List Name -->
@@ -20,14 +18,23 @@
                 <Shadow Brush="Black" Opacity="0.08" Radius="8" Offset="0,2"/>
             </Border.Shadow>
 
-            <Grid ColumnDefinitions="*,Auto" Padding="20,15,20,15">
-                <Label Grid.Column="0" Text="{Binding ShoppingList.Name}"
+            <Grid ColumnDefinitions="Auto,*,Auto" Padding="10,15,20,15" ColumnSpacing="10">
+                <ImageButton Grid.Column="0" 
+                             Command="{Binding BackCommand}"      
+                             Source="back_33dp.svg"
+                             VerticalOptions="Center"
+                             HorizontalOptions="Start"
+                             HeightRequest="33"
+                             WidthRequest="33"
+                             Padding="4"/>
+                <Label Grid.Column="1" 
+                       Text="{Binding ShoppingList.Name}"
                        FontSize="20"
                        FontAttributes="Bold"
                        TextColor="{StaticResource OnSurface}"
                        VerticalOptions="Center"
                        HorizontalOptions="Start"/>
-                <ImageButton Grid.Column="1" 
+                <ImageButton Grid.Column="2" 
                              Command="{Binding ShowMoreMenuCommand}"      
                              Source="dots.png"
                              VerticalOptions="Center"
@@ -88,13 +95,14 @@
                         </Border>
 
                         <!-- Purchased Items List -->
-                        <CollectionView ItemsSource="{Binding PurchasedItems}" IsVisible="{Binding IsPurchasedSectionExpanded}"
+                        <CollectionView ItemsSource="{Binding PurchasedItems}" 
+                                        IsVisible="{Binding IsPurchasedSectionExpanded}"
                                         ItemTemplate="{StaticResource ShoppingItemTemplate}" />
                     </StackLayout>
                 </Border>
             </StackLayout>
         </ScrollView>
-        <Frame Grid.Row="1"
+            <Frame Grid.Row="1"
                x:Name="UndoToast"
                BackgroundColor="{StaticResource OnSurface}"
                BorderColor="Transparent"
@@ -194,9 +202,6 @@
                         Margin="0,6"
                         Padding="16"
                         StrokeShape="RoundRectangle 12">
-                    <Border.Shadow>
-                        <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
-                    </Border.Shadow>
                     <Border.BackgroundColor>
                         <MultiBinding Converter="{StaticResource ItemSelectedToColorConverter}">
                             <Binding Source="{x:Reference Page}" Path="BindingContext.SelectedItemIds"/>
@@ -233,12 +238,12 @@
                                                IsVisible="{Binding HasPriority}"
                                                VerticalOptions="Center"/>
                                     <Label Grid.Column="1"
-                                               Text="{Binding Name}"
-                                               LineBreakMode="WordWrap"
-                                               MaxLines="2"
-                                               TextColor="Black"
-                                               FontSize="16"
-                                               TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
+                                           Text="{Binding Name}"
+                                           LineBreakMode="WordWrap"
+                                           MaxLines="2"
+                                           TextColor="Black"
+                                           FontSize="16"
+                                           TextDecorations="{Binding IsPurchased, Converter={StaticResource StrikeThroughIfPurchasedConverter}}"/>
                                 </Grid>
 
                                 <Label FontSize="14"
