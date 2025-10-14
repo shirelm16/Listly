@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mopups:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                 xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+                 x:Class="Listly.View.SortOptionsPopup"
+                 Title="SortOptionsPopup"
+                 BackgroundColor="#80000000">
+
+    <Grid VerticalOptions="End" RowDefinitions="*,Auto">
+        <Border 
+            Grid.Row="1"
+            BackgroundColor="#E3E3E3"
+            StrokeThickness="0"
+            Padding="0"
+            StrokeShape="RoundRectangle 24,24,0,0">
+            <Border.Shadow>
+                <Shadow Brush="White" Opacity="0.85" Radius="16" Offset="0,-4"/>
+            </Border.Shadow>
+
+            <VerticalStackLayout Spacing="0" Padding="24,16">
+                <!-- Title -->
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,24">
+                    <ImageButton Grid.Column="0"
+                            Source="back.png"
+                            HeightRequest="20"
+                            WidthRequest="20"
+                            BackgroundColor="Transparent"
+                            Padding="0"
+                            Command="{Binding BackCommand}"
+                            HorizontalOptions="Start"
+                            VerticalOptions="Center"/>
+
+                    <Label Grid.Column="1"
+                           Text="Sort by"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource OnSurface}"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+
+                    <ImageButton Grid.Column="2"
+                            Source="close.png"
+                            HeightRequest="20"
+                            WidthRequest="20"
+                            BackgroundColor="Transparent"
+                            Padding="0"
+                            Command="{Binding CloseCommand}"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center"/>
+                </Grid>
+
+                <!-- Category Option -->
+                <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                        StrokeThickness="0"
+                        Padding="12"
+                        Margin="0,0,0,8"
+                        StrokeShape="RoundRectangle 12">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
+                    </Border.Shadow>
+
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectCategorySortCommand}" />
+                        </Grid.GestureRecognizers>
+
+                        <Image Grid.Column="0"
+                               Source="category.png"
+                               HeightRequest="20"
+                               WidthRequest="20"
+                               VerticalOptions="Center"/>
+
+                        <Label Grid.Column="1"
+                               Text="Category"
+                               FontSize="16"
+                               VerticalOptions="Center"
+                               TextColor="{StaticResource OnSurface}"
+                               Margin="10,0,0,0"/>
+
+                        <RadioButton Grid.Column="2"
+                                     GroupName="SortGroup"
+                                     IsChecked="{Binding IsCategorySelected}"
+                                     IsEnabled="False"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="End"/>
+                    </Grid>
+                </Border>
+
+                <!-- Priority Option -->
+                <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                        StrokeThickness="0"
+                        Padding="12"
+                        StrokeShape="RoundRectangle 12">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
+                    </Border.Shadow>
+
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SelectPrioritySortCommand}" />
+                        </Grid.GestureRecognizers>
+
+                        <Image Grid.Column="0"
+                               Source="priority.png"
+                               HeightRequest="20"
+                               WidthRequest="20"
+                               VerticalOptions="Center"/>
+
+                        <Label Grid.Column="1"
+                               Text="Priority"
+                               FontSize="16"
+                               VerticalOptions="Center"
+                               TextColor="{StaticResource OnSurface}"
+                               Margin="10,0,0,0"/>
+
+                        <RadioButton Grid.Column="2"
+                                     GroupName="SortGroup"
+                                     IsChecked="{Binding IsPrioritySelected}"
+                                     IsEnabled="False"
+                                     VerticalOptions="Center"
+                                     HorizontalOptions="End"/>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</mopups:PopupPage>

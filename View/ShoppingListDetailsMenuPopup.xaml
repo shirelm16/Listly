@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mopups:PopupPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                 xmlns:mopups="clr-namespace:Mopups.Pages;assembly=Mopups"
+                 x:Class="Listly.View.ShoppingListDetailsMenuPopup"
+                 Title="MoreMenuPopup"
+                 BackgroundColor="#80000000">
+    <Grid VerticalOptions="End" RowDefinitions="*,Auto">
+        <Border 
+            Grid.Row="1"
+            BackgroundColor="#E3E3E3"
+            StrokeThickness="0"
+            Padding="0"
+            StrokeShape="RoundRectangle 24,24,0,0">
+        <Border.Shadow>
+                <Shadow Brush="White" Opacity="0.85" Radius="16" Offset="0,-4"/>
+        </Border.Shadow>
+
+            <VerticalStackLayout Spacing="0" Padding="24,16">
+                <!-- Sort by option -->
+                <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                        StrokeThickness="0"
+                        Padding="12"
+                        Margin="0,0"
+                        StrokeShape="RoundRectangle 12">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,*" 
+                          Padding="8,12"
+                          ColumnSpacing="10">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ShowSortOptionsCommand}"/>
+                        </Grid.GestureRecognizers>
+
+                        <Image Grid.Column="0"
+                               HeightRequest="20"
+                               WidthRequest="20"
+                               Source="sort.png"
+                               VerticalOptions="Center"/>
+
+                        <Label Grid.Column="1"
+                               Text="Sort by:"
+                               TextColor="{StaticResource OnSurface}"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"
+                               HorizontalOptions="Start"/>
+
+                        <Label Grid.Column="2"
+                               Text="{Binding ShoppingList.SortType}"
+                               TextColor="{StaticResource Primary}"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center"/>
+
+                        <Image Grid.Column="3"
+                               HeightRequest="18"
+                               WidthRequest="18"
+                               Source="right_arrow.png"
+                               HorizontalOptions="End"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Delete purchased items option -->
+                <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                        StrokeThickness="0"
+                        Padding="12"
+                        Margin="0,8"
+                        StrokeShape="RoundRectangle 12">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="Auto,*" 
+                          Padding="8,12"
+                          ColumnSpacing="10">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding DeletePurchasedItemsCommand}"/>
+                        </Grid.GestureRecognizers>
+
+                        <Image Grid.Column="0"
+                               HeightRequest="20"
+                               WidthRequest="20"
+                               Source="delete.png"
+                               VerticalOptions="Center"/>
+
+                        <Label Grid.Column="1"
+                               Text="Delete all purchased items"
+                               TextColor="#F44336"
+                               FontAttributes="Bold"
+                               FontSize="16"
+                               VerticalOptions="Center"
+                               HorizontalOptions="Start"/>
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+</mopups:PopupPage>

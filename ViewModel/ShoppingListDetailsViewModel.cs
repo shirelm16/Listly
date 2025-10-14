@@ -24,7 +24,7 @@ namespace Listly.ViewModel
             _shoppingItemStore = shoppingItemStore;
             _purchasedItems = shoppingList == null ? [] :
                 shoppingList.Items.Where(item => item.IsPurchased).ToList();
-            
+
             WeakReferenceMessenger.Default.Register<ShoppingItemCreatedMessage>(this, async (r, m) =>
             {
                 var item = m.Value;
@@ -36,7 +36,7 @@ namespace Listly.ViewModel
                     item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
                     item.CategoryChanged += ShoppingItem_OnCategoryChanged;
                     item.PriorityChanged += ShoppingItem_OnPriorityChanged;
-                   
+
                     _activeBuckets.AddItem(item);
                     UpdateItemCollections();
                     WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
@@ -52,20 +52,6 @@ namespace Listly.ViewModel
                 itemChanged.Quantity = item.Quantity;
                 itemChanged.Category = item.Category;
             });
-        }
-
-        private void SetActiveItemsBySortType(SortType? sortType)
-        {
-            if(sortType == null || sortType == SortType.Category)
-            {
-                var categoryOrder = Enum.GetValues<Category>().OrderBy(c => c);
-                _activeBuckets = new BucketSortService<ShoppingItem, Category>(item => item?.Category == null ? Category.Other : item.Category.Name, categoryOrder);
-            }
-            else if(sortType == SortType.Priority)
-            {
-                var priorityOrder = new[] { Priority.High, Priority.Medium, Priority.Low };
-                _activeBuckets = new BucketSortService<ShoppingItem, Priority>(item => item?.Priority == null ? Priority.Medium : item.Priority, priorityOrder);
-            }
         }
 
         [ObservableProperty]
@@ -105,30 +91,54 @@ namespace Listly.ViewModel
         public bool IsNormalMode => !IsSelectionMode;
 
         [RelayCommand]
+        async Task ShowMoreMenu()
+        {
+            var popup = new ShoppingListDetailsMenuPopup(this);
+            await MopupService.Instance.PushAsync(popup);
+        }
+
+        [RelayCommand]
+        private async Task DeletePurchasedItems()
+        {
+            if (PurchasedItems.Count == 0)
+            {
+                await MopupService.Instance.PopAsync();
+                await Shell.Current.DisplayAlert("Delete purchased items", "No items to delete", "Ok");
+                return;
+            }
+
+            var confirmed = await Shell.Current.DisplayAlert(
+                "Delete purchased items",
+                $"Are you sure you want to delete all purchased items ({PurchasedItems.Count})?",
+                "Delete",
+                "Cancel");
+
+            if (!confirmed) return;
+
+            foreach (var item in PurchasedItems.ToList())
+            {
+                ShoppingList.Items.Remove(item);
+                await _shoppingItemStore.DeleteShoppingItemAsync(item.ShoppingListId, item.Id);
+            }
+
+            PurchasedItems.Clear();
+            IsPurchasedSectionExpanded = false;
+
+            WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
+
+            await MopupService.Instance.PopAsync();
+        }
+
+        [RelayCommand]
         private async Task ShowSortOptions()
         {
-            var categoryText = ShoppingList.SortType == SortType.Category ? "✓ Category" : "Category";
-            var priorityText = ShoppingList.SortType == SortType.Priority ? "✓ Priority" : "Priority";
-            var result = await Shell.Current.DisplayActionSheet(
-                "Sort by",
-                "Cancel",
-                null,
-                categoryText,
-                priorityText);
-
-            if (result != "Cancel" && result != null)
+            await MopupService.Instance.PopAsync();
+            var popupVm = new SortOptionsPopupViewModel(this, sortType =>
             {
-                var cleanResult = result.Replace("✓ ", "");
-
-                var sortType = cleanResult switch
-                {
-                    "Category" => SortType.Category,
-                    "Priority" => SortType.Priority,
-                    _ => SortType.Category
-                };
-
                 ChangeSortType(sortType);
-            }
+            });
+            var popup = new SortOptionsPopup(popupVm);
+            await MopupService.Instance.PushAsync(popup);
         }
 
         [RelayCommand]
@@ -164,7 +174,7 @@ namespace Listly.ViewModel
             {
                 _activeBuckets.RemoveItem(shoppingItem);
             }
-            
+
             ShoppingList.Items.Remove(shoppingItem);
             await _shoppingItemStore.DeleteShoppingItemAsync(shoppingItem.ShoppingListId, shoppingItem.Id);
             UpdateItemCollections();
@@ -306,8 +316,8 @@ namespace Listly.ViewModel
                     item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
                     item.CategoryChanged += ShoppingItem_OnCategoryChanged;
                     item.PriorityChanged += ShoppingItem_OnPriorityChanged;
-                    
-                    if(item.IsPurchased)
+
+                    if (item.IsPurchased)
                     {
                         _purchasedItems.Add(item);
                     }
@@ -416,7 +426,7 @@ namespace Listly.ViewModel
 
             PurchasedSectionTitle = $"Purchased ({PurchasedItems.Count} items)";
 
-            if(PurchasedItems.Count == 0)
+            if (PurchasedItems.Count == 0)
             {
                 IsPurchasedSectionExpanded = false;
             }
@@ -424,18 +434,32 @@ namespace Listly.ViewModel
 
         private void ChangeSortType(SortType sortType)
         {
-            if ((ShoppingList.SortType == null && sortType != SortType.Category) || sortType != ShoppingList.SortType)
+             if ((ShoppingList.SortType == null && sortType != SortType.Category) || sortType != ShoppingList.SortType)
             {
                 SetActiveItemsBySortType(sortType);
-                foreach (var item in shoppingList.Items)
+                foreach (var item in ShoppingList.Items)
                 {
-                    if(!item.IsPurchased)
+                    if (!item.IsPurchased)
                         _activeBuckets.AddItem(item);
                 }
                 ActiveItems = new ObservableCollection<ShoppingItem>(_activeBuckets.GetSortedItems());
 
                 ShoppingList.SortType = sortType;
                 WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
+            }
+        }
+
+        private void SetActiveItemsBySortType(SortType? sortType)
+        {
+            if (sortType == null || sortType == SortType.Category)
+            {
+                var categoryOrder = Enum.GetValues<Category>().OrderBy(c => c);
+                _activeBuckets = new BucketSortService<ShoppingItem, Category>(item => item?.Category == null ? Category.Other : item.Category.Name, categoryOrder);
+            }
+            else if (sortType == SortType.Priority)
+            {
+                var priorityOrder = new[] { Priority.High, Priority.Medium, Priority.Low };
+                _activeBuckets = new BucketSortService<ShoppingItem, Priority>(item => item?.Priority == null ? Priority.Medium : item.Priority, priorityOrder);
             }
         }
 

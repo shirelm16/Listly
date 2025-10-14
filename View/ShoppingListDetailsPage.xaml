@@ -28,24 +28,13 @@
                        VerticalOptions="Center"
                        HorizontalOptions="Start"/>
                 <ImageButton Grid.Column="1" 
-                             Command="{Binding ShowSortOptionsCommand}"      
-                             Source="sort.png"
+                             Command="{Binding ShowMoreMenuCommand}"      
+                             Source="dots.png"
                              VerticalOptions="Center"
                              HorizontalOptions="End"
                              HeightRequest="30"
                              WidthRequest="30"
-                             Padding="4"
-                             IsVisible="{Binding IsNormalMode}"/>
-                <Button Grid.Column="1"
-                        Text="Cancel"
-                        FontSize="14"
-                        TextColor="{StaticResource Primary}"
-                        BackgroundColor="Transparent"
-                        Padding="8,4"
-                        Command="{Binding CancelSelectionCommand}"
-                        IsVisible="{Binding IsSelectionMode}"
-                        VerticalOptions="Center"
-                        HorizontalOptions="End"/>
+                             Padding="4"/>
             </Grid>
         </Border>
         <ScrollView Grid.Row="1" Margin="16,8">

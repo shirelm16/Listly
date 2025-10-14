@@ -261,6 +261,45 @@
                 </VisualStateGroup>
             </VisualStateGroupList>
         </Setter>
+       <Setter Property="ControlTemplate">
+        <ControlTemplate>
+            <Grid WidthRequest="24" HeightRequest="24" HorizontalOptions="Center" VerticalOptions="Center">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal">
+                            <VisualState.Setters>
+                                <Setter TargetName="outerCircle" Property="Ellipse.Stroke" Value="#999999" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="Checked">
+                            <VisualState.Setters>
+                                <Setter TargetName="outerCircle" Property="Ellipse.Stroke" Value="{StaticResource Primary}" />
+                                <Setter TargetName="innerCircle" Property="Ellipse.Fill" Value="{StaticResource Primary}" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="Unchecked">
+                            <VisualState.Setters>
+                                <Setter TargetName="outerCircle" Property="Ellipse.Stroke" Value="#999999" />
+                                <Setter TargetName="innerCircle" Property="Ellipse.Fill" Value="Transparent" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+                
+                <!-- Outer circle border -->
+                <Ellipse x:Name="outerCircle" 
+                         Stroke="#999999"
+                         StrokeThickness="2"
+                         Fill="Transparent"/>
+                
+                <!-- Inner circle dot -->
+                <Ellipse x:Name="innerCircle"
+                         Fill="Transparent"
+                         Margin="6"
+                         IsVisible="{TemplateBinding IsChecked}"/>
+            </Grid>
+        </ControlTemplate>
+    </Setter>
     </Style>
 
     <Style TargetType="RefreshView">
