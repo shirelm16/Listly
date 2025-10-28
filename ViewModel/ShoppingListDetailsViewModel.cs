@@ -19,6 +19,9 @@ namespace Listly.ViewModel
         private IBucketSortService<ShoppingItem> _activeBuckets;
         private List<ShoppingItem> _purchasedItems;
 
+        private ShoppingItemsGroup? _activeGroup;
+        private ShoppingItemsGroup? _purchasedGroup;
+
         public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore)
         {
             _shoppingItemStore = shoppingItemStore;
@@ -67,12 +70,8 @@ namespace Listly.ViewModel
         private CancellationTokenSource? _updateCancellation;
 
         [ObservableProperty]
-        private ObservableCollection<ShoppingItem> activeItems = new();
+        private ObservableCollection<ShoppingItemsGroup> groupedItems = new();
 
-        [ObservableProperty]
-        private ObservableCollection<ShoppingItem> purchasedItems = new();
-
-        [ObservableProperty]
         private bool isPurchasedSectionExpanded = false;
 
         [ObservableProperty]
@@ -88,6 +87,7 @@ namespace Listly.ViewModel
         private int selectedCount = 0;
 
         public string SelectionText => $"{SelectedCount} selected";
+
         public bool IsNormalMode => !IsSelectionMode;
 
         [RelayCommand]
@@ -106,7 +106,7 @@ namespace Listly.ViewModel
         [RelayCommand]
         private async Task DeletePurchasedItems()
         {
-            if (PurchasedItems.Count == 0)
+            if (_purchasedItems.Count == 0)
             {
                 await MopupService.Instance.PopAsync();
                 await Shell.Current.DisplayAlert("Delete purchased items", "No items to delete", "Ok");
@@ -115,20 +115,21 @@ namespace Listly.ViewModel
 
             var confirmed = await Shell.Current.DisplayAlert(
                 "Delete purchased items",
-                $"Are you sure you want to delete all purchased items ({PurchasedItems.Count})?",
+                $"Are you sure you want to delete all purchased items ({_purchasedItems.Count})?",
                 "Delete",
                 "Cancel");
 
             if (!confirmed) return;
 
-            foreach (var item in PurchasedItems.ToList())
+            foreach (var item in _purchasedItems.ToList())
             {
                 ShoppingList.Items.Remove(item);
                 await _shoppingItemStore.DeleteShoppingItemAsync(item.ShoppingListId, item.Id);
             }
 
-            PurchasedItems.Clear();
-            IsPurchasedSectionExpanded = false;
+            _purchasedItems.Clear();
+
+            UpdateItemCollections();
 
             WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
 
@@ -211,10 +212,23 @@ namespace Listly.ViewModel
             ShowUndoToast = false;
         }
 
+
         [RelayCommand]
-        private void TogglePurchasedSection()
+        private void TogglePurchasedGroup(ShoppingItemsGroup group)
         {
-            IsPurchasedSectionExpanded = !IsPurchasedSectionExpanded;
+            if (group.IsExpandable)
+            {
+                group.SetExpanded(!group.IsExpanded);
+                if (group.IsExpanded) 
+                {
+                    group.RefreshItems(_purchasedItems);
+                }
+                else
+                {
+                    group.RefreshItems([]);
+                }
+                isPurchasedSectionExpanded = group.IsExpanded;
+            }
         }
 
         [RelayCommand]
@@ -225,8 +239,6 @@ namespace Listly.ViewModel
             IsSelectionMode = true;
             SelectedItemIds = new HashSet<Guid>(SelectedItemIds) { item.Id };
             SelectedCount = SelectedItemIds.Count;
-
-            RefreshCollections();
         }
 
         [RelayCommand]
@@ -249,7 +261,6 @@ namespace Listly.ViewModel
 
                 SelectedItemIds = newSelection;
                 SelectedCount = SelectedItemIds.Count;
-                RefreshCollections();
 
                 // Exit selection mode if no items selected
                 if (SelectedCount == 0)
@@ -295,7 +306,6 @@ namespace Listly.ViewModel
                 await _shoppingItemStore.DeleteShoppingItemAsync(item.ShoppingListId, item.Id);
             }
 
-            UpdateItemCollections();
             WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
 
             // Exit selection mode
@@ -332,7 +342,7 @@ namespace Listly.ViewModel
                         _activeBuckets.AddItem(item);
                     }
                 }
-                UpdateItemCollections();
+                InitializeGroups();
             }
         }
 
@@ -347,7 +357,6 @@ namespace Listly.ViewModel
                 SelectedCount = 0;
                 OnPropertyChanged(nameof(SelectionText));
                 OnPropertyChanged(nameof(SelectedItemIds));
-                RefreshCollections();
             }
         }
 
@@ -425,22 +434,55 @@ namespace Listly.ViewModel
             }
         }
 
+        private void InitializeGroups()
+        {
+            GroupedItems = new ObservableCollection<ShoppingItemsGroup>();
+
+            _activeGroup = new ShoppingItemsGroup("", _activeBuckets.GetSortedItems());
+            GroupedItems.Add(_activeGroup);
+
+            PurchasedSectionTitle = $"Purchased ({_purchasedItems.Count} items)";
+            _purchasedGroup = new ShoppingItemsGroup(PurchasedSectionTitle, _purchasedItems, isExpanded: isPurchasedSectionExpanded, isExpandable: true);
+            GroupedItems.Add(_purchasedGroup);
+        }
+
         private void UpdateItemCollections()
         {
-            ActiveItems = new ObservableCollection<ShoppingItem>(_activeBuckets.GetSortedItems());
-            PurchasedItems = new ObservableCollection<ShoppingItem>(_purchasedItems);
+            PurchasedSectionTitle = $"Purchased ({_purchasedItems.Count} items)";
 
-            PurchasedSectionTitle = $"Purchased ({PurchasedItems.Count} items)";
-
-            if (PurchasedItems.Count == 0)
+            if (_purchasedItems.Count == 0)
             {
-                IsPurchasedSectionExpanded = false;
+                isPurchasedSectionExpanded = false;
+            }
+
+            if (_activeGroup != null)
+            {
+                var activeItems = _activeBuckets.GetSortedItems().ToList();
+
+                if (!_activeGroup.SequenceEqual(activeItems))
+                {
+                    _activeGroup.RefreshItems(activeItems);
+                }
+            }
+
+            if (_purchasedGroup != null)
+            {
+                _purchasedGroup.Title = PurchasedSectionTitle;
+                _purchasedGroup.SetExpanded(isPurchasedSectionExpanded);
+                //update purchasedGroup if expanded or if purchased items became empty
+                if (_purchasedGroup.IsExpanded || _purchasedItems.Count == 0)
+                {
+                    if (!_purchasedGroup.SequenceEqual(_purchasedItems))
+                    {
+                        _purchasedGroup.RefreshItems(_purchasedItems);
+                    }
+                }
             }
         }
 
         private void ChangeSortType(SortType sortType)
         {
-             if ((ShoppingList.SortType == null && sortType != SortType.Category) || sortType != ShoppingList.SortType)
+            if ((ShoppingList.SortType == null && sortType != SortType.Category) || sortType != ShoppingList.SortType)
             {
                 SetActiveItemsBySortType(sortType);
                 foreach (var item in ShoppingList.Items)
@@ -448,7 +490,8 @@ namespace Listly.ViewModel
                     if (!item.IsPurchased)
                         _activeBuckets.AddItem(item);
                 }
-                ActiveItems = new ObservableCollection<ShoppingItem>(_activeBuckets.GetSortedItems());
+
+                UpdateItemCollections();
 
                 ShoppingList.SortType = sortType;
                 WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
@@ -467,13 +510,6 @@ namespace Listly.ViewModel
                 var priorityOrder = new[] { Priority.High, Priority.Medium, Priority.Low };
                 _activeBuckets = new BucketSortService<ShoppingItem, Priority>(item => item?.Priority == null ? Priority.Medium : item.Priority, priorityOrder);
             }
-        }
-
-        private void RefreshCollections()
-        {
-            // Create new collection instances to trigger UI update
-            ActiveItems = new ObservableCollection<ShoppingItem>(ActiveItems);
-            PurchasedItems = new ObservableCollection<ShoppingItem>(PurchasedItems);
         }
 
         public void Dispose()
