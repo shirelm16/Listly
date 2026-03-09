@@ -17,6 +17,37 @@
         </Border.Shadow>
 
             <VerticalStackLayout Spacing="0" Padding="24,16">
+                <!-- Search on the list -->
+                <Border BackgroundColor="{StaticResource SurfaceVariant}"
+                        StrokeThickness="0"
+                        Padding="12"
+                        Margin="0,8"
+                        StrokeShape="RoundRectangle 12">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Opacity="0.04" Radius="8" Offset="0,1"/>
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="Auto,*" 
+                          Padding="8,12"
+                          ColumnSpacing="10">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ShowSearchCommand}"/>
+                        </Grid.GestureRecognizers>
+
+                        <Image Grid.Column="0"
+                               HeightRequest="20"
+                               WidthRequest="20"
+                               Source="search.png"
+                               VerticalOptions="Center"/>
+
+                        <Label Grid.Column="1"
+                               Text="Search on the list"
+                               TextColor="{StaticResource OnSurface}"
+                               FontAttributes="Bold"
+                               FontSize="16"
+                               VerticalOptions="Center"
+                               HorizontalOptions="Start"/>
+                    </Grid>
+                </Border>
                 <!-- Sort by option -->
                 <Border BackgroundColor="{StaticResource SurfaceVariant}"
                         StrokeThickness="0"

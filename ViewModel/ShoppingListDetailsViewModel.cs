@@ -54,6 +54,7 @@ namespace Listly.ViewModel
                 itemChanged.IsPurchased = item.IsPurchased;
                 itemChanged.Quantity = item.Quantity;
                 itemChanged.Category = item.Category;
+                UpdateItemCollections();
             });
         }
 
@@ -67,7 +68,6 @@ namespace Listly.ViewModel
         private bool showUndoToast;
 
         private CancellationTokenSource? _hideToastCancellation;
-        private CancellationTokenSource? _updateCancellation;
 
         [ObservableProperty]
         private ObservableCollection<ShoppingItemsGroup> groupedItems = new();
@@ -75,10 +75,13 @@ namespace Listly.ViewModel
         private bool isPurchasedSectionExpanded = false;
 
         [ObservableProperty]
-        private string purchasedSectionTitle = "Purchased (0 items)";
+        private bool isSelectionMode = false;
 
         [ObservableProperty]
-        private bool isSelectionMode = false;
+        private bool isSearchVisible = false;
+
+        [ObservableProperty]
+        private string searchText = string.Empty;
 
         [ObservableProperty]
         private HashSet<Guid> selectedItemIds = new();
@@ -101,6 +104,21 @@ namespace Listly.ViewModel
         {
             var popup = new ShoppingListDetailsMenuPopup(this);
             await MopupService.Instance.PushAsync(popup);
+        }
+
+        [RelayCommand]
+        private async Task ShowSearch()
+        {
+            IsSearchVisible = true;
+            await MopupService.Instance.PopAsync();
+        }
+
+        [RelayCommand]
+        private void CloseSearch()
+        {
+            SearchText = string.Empty;
+            IsSearchVisible = false;
+            RestoreFullGroupedItems();
         }
 
         [RelayCommand]
@@ -310,6 +328,7 @@ namespace Listly.ViewModel
 
             // Exit selection mode
             IsSelectionMode = false;
+            UpdateItemCollections();
         }
 
         [RelayCommand]
@@ -434,6 +453,52 @@ namespace Listly.ViewModel
             }
         }
 
+        partial void OnSearchTextChanged(string value)
+        {
+            ApplySearch();
+        }
+
+        private void ApplySearch()
+        {
+            var normalizedText = Normalize(SearchText);
+
+            if (string.IsNullOrWhiteSpace(normalizedText))
+            {
+                RestoreFullGroupedItems();
+                return;
+            }
+
+            var activeItems = _activeBuckets.GetSortedItems();
+
+            var allItems = activeItems.Concat(_purchasedItems);
+
+            var matchedItems = allItems
+                .Where(item => Normalize(item.Name).Contains(normalizedText))
+                .ToList();
+
+            RebuildFilteredDisplay(matchedItems);
+        }
+
+        private void RestoreFullGroupedItems()
+        {
+            _activeGroup?.RefreshItems(_activeBuckets.GetSortedItems().ToList());
+
+            if (_purchasedGroup != null)
+            {
+                _purchasedGroup.SetExpanded(isPurchasedSectionExpanded);
+                _purchasedGroup.Title = $"Purchased ({_purchasedItems.Count} items)";
+
+                if (isPurchasedSectionExpanded)
+                {
+                    _purchasedGroup.RefreshItems(_purchasedItems);
+                }
+                else
+                {
+                    _purchasedGroup.RefreshItems([]);
+                }
+            }
+        }
+
         private void InitializeGroups()
         {
             GroupedItems = new ObservableCollection<ShoppingItemsGroup>();
@@ -441,14 +506,18 @@ namespace Listly.ViewModel
             _activeGroup = new ShoppingItemsGroup("", _activeBuckets.GetSortedItems());
             GroupedItems.Add(_activeGroup);
 
-            PurchasedSectionTitle = $"Purchased ({_purchasedItems.Count} items)";
-            _purchasedGroup = new ShoppingItemsGroup(PurchasedSectionTitle, _purchasedItems, isExpanded: isPurchasedSectionExpanded, isExpandable: true);
+            _purchasedGroup = new ShoppingItemsGroup($"Purchased ({_purchasedItems.Count} items)", 
+                _purchasedItems, isExpanded: isPurchasedSectionExpanded, isExpandable: true);
             GroupedItems.Add(_purchasedGroup);
         }
 
         private void UpdateItemCollections()
         {
-            PurchasedSectionTitle = $"Purchased ({_purchasedItems.Count} items)";
+            if (!string.IsNullOrEmpty(SearchText))
+            {
+                ApplySearch();
+                return;
+            }
 
             if (_purchasedItems.Count == 0)
             {
@@ -467,7 +536,7 @@ namespace Listly.ViewModel
 
             if (_purchasedGroup != null)
             {
-                _purchasedGroup.Title = PurchasedSectionTitle;
+                _purchasedGroup.Title = $"Purchased ({_purchasedItems.Count} items)";
                 _purchasedGroup.SetExpanded(isPurchasedSectionExpanded);
                 //update purchasedGroup if expanded or if purchased items became empty
                 if (_purchasedGroup.IsExpanded || _purchasedItems.Count == 0)
@@ -510,6 +579,26 @@ namespace Listly.ViewModel
                 var priorityOrder = new[] { Priority.High, Priority.Medium, Priority.Low };
                 _activeBuckets = new BucketSortService<ShoppingItem, Priority>(item => item?.Priority == null ? Priority.Medium : item.Priority, priorityOrder);
             }
+        }
+
+        private void RebuildFilteredDisplay(List<ShoppingItem> matchedItems)
+        {
+            var activeItems = matchedItems.Where(i => !i.IsPurchased).ToList();
+            var purchasedItems = matchedItems.Where(i => i.IsPurchased).ToList();
+
+            _activeGroup?.RefreshItems(activeItems);
+
+            if (_purchasedGroup != null) 
+            {
+                _purchasedGroup.SetExpanded(true);
+                _purchasedGroup.RefreshItems(purchasedItems);
+                _purchasedGroup.Title = $"Purchased ({purchasedItems.Count} items)";
+            }
+        }
+
+        private string Normalize(string text)
+        {
+            return text?.Trim().ToLowerInvariant() ?? string.Empty;
         }
 
         public void Dispose()

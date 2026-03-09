@@ -9,8 +9,9 @@
              xmlns:selectors="clr-namespace:Listly.Selectors"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              BackgroundColor="{StaticResource Background}"
-             x:Name="Page">
-    <Grid RowDefinitions="Auto,*,Auto">
+             x:Name="Page"
+             HideSoftInputOnTapped="True">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
         <!-- Header with List Name -->
         <Border Grid.Row="0" 
                 BackgroundColor="{StaticResource Surface}"
@@ -50,7 +51,54 @@
                 </ContentView>
             </Grid>
         </Border>
-        <CollectionView Grid.Row="1"
+        <Grid Grid.Row="1"
+              Margin="16,12,16,4"
+              ColumnDefinitions="*,Auto"
+              ColumnSpacing="8"
+              IsVisible="{Binding IsSearchVisible}">
+
+            <!-- Search bar -->
+            <Border Grid.Column="0"
+                    Padding="0"
+                    BackgroundColor="{StaticResource Surface}"
+                    Stroke="{StaticResource OutlineVariant}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 20">
+
+                <Grid ColumnDefinitions="Auto,*"
+                      Padding="12,8"
+                      ColumnSpacing="8">
+
+                    <Image Grid.Column="0"
+                           Source="search.png"
+                           WidthRequest="20"
+                           HeightRequest="20"
+                           VerticalOptions="Center"/>
+
+                        <Entry x:Name="SearchEntry"
+                               Grid.Column="1"
+                               Text="{Binding SearchText}"
+                               Placeholder="Search items"
+                               PlaceholderColor="{StaticResource OnSurfaceVariant}"
+                               TextColor="{StaticResource OnSurface}"
+                               BackgroundColor="Transparent"
+                               ClearButtonVisibility="WhileEditing"
+                               ReturnType="Search"
+                               VerticalOptions="Center"/>
+
+                </Grid>
+            </Border>
+
+            <!-- Close button -->
+            <Button Grid.Column="1"
+                 Text="close"
+                 TextColor="{StaticResource OnSurface}"
+                 BackgroundColor="Transparent"
+                 VerticalOptions="Center"
+                 Command="{Binding CloseSearchCommand}"/>
+
+        </Grid>
+        <CollectionView Grid.Row="2"
                         IsGrouped="True"
                         ItemsSource="{Binding GroupedItems}"
                         ItemTemplate="{StaticResource ShoppingItemTemplate}">
@@ -60,7 +108,7 @@
             </CollectionView.GroupHeaderTemplate>
         </CollectionView>
 
-        <Frame Grid.Row="1"
+        <Frame Grid.Row="2"
                x:Name="UndoToast"
                BackgroundColor="{StaticResource OnSurface}"
                BorderColor="Transparent"
@@ -90,7 +138,7 @@
                         Command="{Binding UndoLastPurchaseCommand}"/>
             </StackLayout>
         </Frame>
-        <Button Grid.Row="2"
+        <Button Grid.Row="3"
                 Text="+ Add Item"
                 BackgroundColor="{StaticResource Primary}"
                 TextColor="{StaticResource OnPrimary}"
@@ -105,7 +153,7 @@
                 <Shadow Brush="{StaticResource Primary}" Opacity="0.3" Radius="12" Offset="0,4"/>
             </Button.Shadow>
         </Button>
-        <Frame Grid.Row="2"
+        <Frame Grid.Row="3"
             BackgroundColor="{StaticResource Primary}"
             BorderColor="Transparent"
             CornerRadius="28"
