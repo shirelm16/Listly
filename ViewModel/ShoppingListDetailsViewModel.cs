@@ -17,14 +17,16 @@ namespace Listly.ViewModel
     {
         private readonly IShoppingItemStore _shoppingItemStore;
         private IBucketSortService<ShoppingItem> _activeBuckets;
+        private readonly ICategorySuggestionService _categorySuggestionService;
         private List<ShoppingItem> _purchasedItems;
 
         private ShoppingItemsGroup? _activeGroup;
         private ShoppingItemsGroup? _purchasedGroup;
 
-        public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore)
+        public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore, ICategorySuggestionService categorySuggestionService)
         {
             _shoppingItemStore = shoppingItemStore;
+            _categorySuggestionService = categorySuggestionService;
             _purchasedItems = shoppingList == null ? [] :
                 shoppingList.Items.Where(item => item.IsPurchased).ToList();
 
@@ -172,7 +174,7 @@ namespace Listly.ViewModel
             if (shoppingItem == null)
                 return;
 
-            var popup = new AddEditShoppingItemPopup(_shoppingItemStore, ShoppingList.Id, shoppingItem);
+            var popup = new AddEditShoppingItemPopup(_shoppingItemStore, _categorySuggestionService, ShoppingList.Id, shoppingItem);
             await MopupService.Instance.PushAsync(popup);
         }
 
@@ -209,7 +211,7 @@ namespace Listly.ViewModel
         [RelayCommand]
         async Task AddItem()
         {
-            var popup = new AddEditShoppingItemPopup(_shoppingItemStore, ShoppingList.Id);
+            var popup = new AddEditShoppingItemPopup(_shoppingItemStore, _categorySuggestionService, ShoppingList.Id);
             await MopupService.Instance.PushAsync(popup);
         }
 

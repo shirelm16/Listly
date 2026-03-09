@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Listly.Messages;
 using Listly.Model;
+using Listly.Services;
 using Listly.Store;
 using Mopups.Services;
 using System;
@@ -20,6 +21,9 @@ namespace Listly.ViewModel
         private readonly ShoppingItem _shoppingItem;
 
         private readonly IShoppingItemStore _shoppingItemStore;
+
+        private readonly ICategorySuggestionService _categorySuggestionService;
+        private CancellationTokenSource? _suggestionCts;
 
         public Guid ShoppingListId { get; }
 
@@ -60,10 +64,12 @@ namespace Listly.ViewModel
             }
         }
 
-        public AddEditShoppingItemViewModel(IShoppingItemStore shoppingItemStore, ShoppingItem shoppingItem, Guid shoppingListId)
+        public AddEditShoppingItemViewModel(IShoppingItemStore shoppingItemStore, ICategorySuggestionService categorySuggestionService, 
+            ShoppingItem shoppingItem, Guid shoppingListId)
         {
             _shoppingItem = shoppingItem;
             _shoppingItemStore = shoppingItemStore;
+            _categorySuggestionService = categorySuggestionService;
             ShoppingListId = shoppingListId;
             Name = shoppingItem?.Name;
             Quantity = shoppingItem?.Quantity;
@@ -180,6 +186,32 @@ namespace Listly.ViewModel
             OnPropertyChanged(nameof(CanSave));
             OnPropertyChanged(nameof(HasChanges));
             SaveCommand.NotifyCanExecuteChanged();
+            _ = SuggestCategoryAsync(value);
+        }
+
+        private async Task SuggestCategoryAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name) || name.Length < 2)
+                return;
+
+            _suggestionCts?.Cancel();
+            _suggestionCts = new CancellationTokenSource();
+
+            try
+            {
+                await Task.Delay(400, _suggestionCts.Token);
+
+                var category = await _categorySuggestionService.SuggestCategoryAsync(name);
+
+                if (category != null)
+                {
+                    SelectedCategory = category.Value.GetDisplayWithIcon();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // expected when user keeps typing
+            }
         }
 
         partial void OnQuantityChanged(double? value)

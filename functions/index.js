@@ -1,7 +1,12 @@
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
+const {onRequest} = require("firebase-functions/v2/https");
+const {defineSecret} = require("firebase-functions/params");
 const admin = require("firebase-admin");
+const OpenAI = require("openai");
 
 admin.initializeApp();
+
+const openAiApiKey = defineSecret("OPENAI_API_KEY");
 
 exports.notifyOnSharedListChange = onDocumentWritten(
     "shoppingLists/{listId}/items/{itemId}",
@@ -77,3 +82,96 @@ exports.notifyOnSharedListChange = onDocumentWritten(
         });
       }
     });
+
+exports.categorizeItem = onRequest(
+    {secrets: [openAiApiKey]},
+    async (req, res) => {
+      try {
+        if (req.method !== "POST") {
+          res.status(405).send("Method not allowed");
+          return;
+        }
+
+        const itemName = req.body && req.body.itemName;
+
+        if (!itemName || typeof itemName !== "string") {
+          res.status(400).send("Missing itemName");
+          return;
+        }
+
+        const normalizedItemName = itemName
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+        const cacheRef = admin
+            .firestore()
+            .collection("categoryCache")
+            .doc(normalizedItemName);
+
+        const cacheDoc = await cacheRef.get();
+
+        if (cacheDoc.exists) {
+          res.json({
+            category: cacheDoc.data().category,
+            source: "cache",
+          });
+          return;
+        }
+
+        const client = new OpenAI({
+          apiKey: openAiApiKey.value(),
+        });
+
+        const categories = req.body && req.body.categories;
+
+        if (!Array.isArray(categories) || categories.length === 0) {
+          res.status(400).send("Missing categories");
+          return;
+        }
+
+        const messages = [
+          {
+            role: "system",
+            content: `
+    You classify grocery shopping items into categories.
+    You must return exactly one category from the provided list.
+    If the item does not clearly belong to any category, return "Other".
+    Do not explain your answer.
+    `,
+          },
+          {
+            role: "user",
+            content: `
+    Item name: "${itemName}"
+
+    Categories:
+    ${categories.join(", ")}
+
+    Return only the category name.
+    `,
+          }];
+
+        const response = await client.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: messages,
+          temperature: 0,
+        });
+
+        const category = response.choices[0].message.content.trim();
+
+        await cacheRef.set({
+          category,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        res.json({
+          category,
+          source: "ai",
+        });
+      } catch (error) {
+        console.error("categorizeItem error:", error);
+        res.status(500).send("Internal server error");
+      }
+    },
+);

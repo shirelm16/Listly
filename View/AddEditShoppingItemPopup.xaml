@@ -52,7 +52,7 @@
                 <Picker x:Name="CategoryPicker"
                         Title="Category"
                         ItemsSource="{Binding Categories}"
-                        SelectedItem="{Binding SelectedCategory}"
+                        SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
                         BackgroundColor="White"
                         TextColor="{StaticResource OnSurface}"
                         TitleColor="{StaticResource OnSurfaceVariant}"

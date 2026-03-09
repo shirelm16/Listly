@@ -1,7 +1,6 @@
 ﻿using Listly.Store;
 using Listly.View;
 using Listly.ViewModel;
-using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 
 #if ANDROID
@@ -15,6 +14,8 @@ using Plugin.Firebase.Firestore;
 using Plugin.Firebase.CloudMessaging;
 using Plugin.Firebase.Auth.Google;
 using CommunityToolkit.Maui;
+using Listly.Services;
+using Microsoft.Extensions.Logging;
 
 namespace Listly
 {
@@ -57,6 +58,8 @@ namespace Listly
             builder.Services.AddSingleton<IShoppingListStore, FirestoreShoppingListStore>();
             builder.Services.AddSingleton<IShoppingItemStore, FirestoreShoppingListStore>();
             builder.Services.AddSingleton<IUsersStore, FirestoreUsersStore>();
+            builder.Services.AddSingleton<ICategorySuggestionService, CategorySuggestionService>();
+            builder.Services.AddSingleton<HttpClient>();
 
             builder.Services.AddSingleton<MainPage>();
             builder.Services.AddSingleton<ProfilePage>();
