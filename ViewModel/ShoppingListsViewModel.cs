@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Listly.Messages;
 using Listly.Model;
+using Listly.Services;
 using Listly.Store;
 using Listly.View;
 using Mopups.Services;
@@ -15,16 +16,16 @@ namespace Listly.ViewModel
     public partial class ShoppingListsViewModel : BaseViewModel
     {
         private readonly IShoppingListStore _shoppingListStore;
-        private readonly IFirebaseAuth _auth;
+        private readonly ICurrentUserService _currentUserService;
 
         [ObservableProperty]
         ObservableCollection<ShoppingList> _shoppingLists = new();
 
-        public ShoppingListsViewModel(IShoppingListStore shoppingListStore, IFirebaseAuth auth)
+        public ShoppingListsViewModel(IShoppingListStore shoppingListStore, ICurrentUserService currentUserService)
         {
             Title = "My Lists";
             _shoppingListStore = shoppingListStore;
-            _auth = auth;
+            _currentUserService = currentUserService;
             WeakReferenceMessenger.Default.Register<ShoppingListUpdatedMessage>(this, async (r, m) =>
             {
                 var list = m.Value;
@@ -46,8 +47,7 @@ namespace Listly.ViewModel
             if (shoppingList == null)
                 return;
 
-            var currentuser = _auth.CurrentUser;
-            if(currentuser == null || currentuser.IsAnonymous)
+            if(_currentUserService.UserId == null || _currentUserService.IsAnonymous)
             {
                 await Shell.Current.DisplayAlert("Sign in required", "You must sign in to share lists.", "OK");
                 return;

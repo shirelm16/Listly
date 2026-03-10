@@ -93,9 +93,15 @@ exports.categorizeItem = onRequest(
         }
 
         const itemName = req.body && req.body.itemName;
+        const userId = req.body && req.body.userId;
 
         if (!itemName || typeof itemName !== "string") {
           res.status(400).send("Missing itemName");
+          return;
+        }
+
+        if (!userId || typeof userId !== "string") {
+          res.status(400).send("Missing userId");
           return;
         }
 
@@ -103,6 +109,23 @@ exports.categorizeItem = onRequest(
             .trim()
             .toLowerCase()
             .replace(/\s+/g, " ");
+
+        const userOverrideRef = admin
+            .firestore()
+            .collection("users")
+            .doc(userId)
+            .collection("categoryOverrides")
+            .doc(normalizedItemName);
+
+        const userOverrideDoc = await userOverrideRef.get();
+
+        if (userOverrideDoc.exists) {
+          res.json({
+            category: userOverrideDoc.data().category,
+            source: "user_override",
+          });
+          return;
+        }
 
         const cacheRef = admin
             .firestore()
@@ -151,13 +174,13 @@ exports.categorizeItem = onRequest(
     Return only the category name.
     `,
           }];
-
+        console.log("Calling OpenAI for:", itemName);
         const response = await client.chat.completions.create({
           model: "gpt-4o-mini",
           messages: messages,
           temperature: 0,
         });
-
+        console.log("OpenAI response:", response);
         const category = response.choices[0].message.content.trim();
 
         await cacheRef.set({

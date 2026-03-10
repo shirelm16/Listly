@@ -11,7 +11,7 @@ namespace Listly.Services
 
     public interface ICategorySuggestionService
     {
-        public Task<Category?> SuggestCategoryAsync(string itemName);
+        public Task<Category?> SuggestCategoryAsync(string itemName, string userId);
     }
 
     public class CategorySuggestionService : ICategorySuggestionService
@@ -23,11 +23,12 @@ namespace Listly.Services
             _httpClient = httpClient;
         }
 
-        public async Task<Category?> SuggestCategoryAsync(string itemName)
+        public async Task<Category?> SuggestCategoryAsync(string itemName, string userId)
         {
             var request = new
             {
-                itemName,
+                ItemName = ItemNameNormalizer.Normalize(itemName),
+                UserId = userId,
                 categories = Enum.GetNames(typeof(Category))
             };
 

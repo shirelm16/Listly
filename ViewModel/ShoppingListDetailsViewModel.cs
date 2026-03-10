@@ -16,6 +16,8 @@ namespace Listly.ViewModel
     public partial class ShoppingListDetailsViewModel : BaseViewModel, IDisposable
     {
         private readonly IShoppingItemStore _shoppingItemStore;
+        private readonly IUsersStore _usersStore;
+        private readonly ICurrentUserService _currentUserService;
         private IBucketSortService<ShoppingItem> _activeBuckets;
         private readonly ICategorySuggestionService _categorySuggestionService;
         private List<ShoppingItem> _purchasedItems;
@@ -23,9 +25,12 @@ namespace Listly.ViewModel
         private ShoppingItemsGroup? _activeGroup;
         private ShoppingItemsGroup? _purchasedGroup;
 
-        public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore, ICategorySuggestionService categorySuggestionService)
+        public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore, IUsersStore usersStore, 
+            ICurrentUserService currentUserService, ICategorySuggestionService categorySuggestionService)
         {
             _shoppingItemStore = shoppingItemStore;
+            _usersStore = usersStore;
+            _currentUserService = currentUserService;
             _categorySuggestionService = categorySuggestionService;
             _purchasedItems = shoppingList == null ? [] :
                 shoppingList.Items.Where(item => item.IsPurchased).ToList();
@@ -174,7 +179,7 @@ namespace Listly.ViewModel
             if (shoppingItem == null)
                 return;
 
-            var popup = new AddEditShoppingItemPopup(_shoppingItemStore, _categorySuggestionService, ShoppingList.Id, shoppingItem);
+            var popup = new AddEditShoppingItemPopup(_shoppingItemStore, _usersStore, _currentUserService, _categorySuggestionService, ShoppingList.Id, shoppingItem);
             await MopupService.Instance.PushAsync(popup);
         }
 
@@ -211,7 +216,7 @@ namespace Listly.ViewModel
         [RelayCommand]
         async Task AddItem()
         {
-            var popup = new AddEditShoppingItemPopup(_shoppingItemStore, _categorySuggestionService, ShoppingList.Id);
+            var popup = new AddEditShoppingItemPopup(_shoppingItemStore, _usersStore, _currentUserService, _categorySuggestionService, ShoppingList.Id);
             await MopupService.Instance.PushAsync(popup);
         }
 

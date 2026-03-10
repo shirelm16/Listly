@@ -21,9 +21,15 @@ namespace Listly.ViewModel
         private readonly ShoppingItem _shoppingItem;
 
         private readonly IShoppingItemStore _shoppingItemStore;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly IUsersStore _usersStore;
 
         private readonly ICategorySuggestionService _categorySuggestionService;
         private CancellationTokenSource? _suggestionCts;
+
+        private bool _isInitializing;
+        private bool _isSettingCategoryProgrammatically;
+        private bool _wasCategoryManuallyChanged;
 
         public Guid ShoppingListId { get; }
 
@@ -33,6 +39,8 @@ namespace Listly.ViewModel
 
         public List<string> Categories { get; set; }
         public List<Priority> Priorities { get; set; }
+
+        public bool ShowSuggestButton => !IsSuggestingCategory && !string.IsNullOrWhiteSpace(Name);
 
         [ObservableProperty]
         string name;
@@ -52,6 +60,9 @@ namespace Listly.ViewModel
         [ObservableProperty]
         bool? hasPriority;
 
+        [ObservableProperty]
+        bool isSuggestingCategory;
+
 
         public bool HasChanges
         {
@@ -59,16 +70,20 @@ namespace Listly.ViewModel
             {
                 return !string.Equals(_shoppingItem?.Name, Name?.Trim(), StringComparison.Ordinal) ||
                        _shoppingItem?.Quantity != Quantity || _shoppingItem?.Unit != Unit || 
-                       _shoppingItem?.Category?.Name.GetDisplayName() != SelectedCategory ||
+                       _shoppingItem?.Category?.Name.GetDisplayWithIcon() != SelectedCategory ||
                        _shoppingItem?.Priority != ItemPriority || _shoppingItem?.HasPriority != HasPriority;
             }
         }
 
-        public AddEditShoppingItemViewModel(IShoppingItemStore shoppingItemStore, ICategorySuggestionService categorySuggestionService, 
+        public AddEditShoppingItemViewModel(IShoppingItemStore shoppingItemStore, IUsersStore usersStore,
+            ICurrentUserService currentUserService, ICategorySuggestionService categorySuggestionService, 
             ShoppingItem shoppingItem, Guid shoppingListId)
         {
+            _isInitializing = true;
             _shoppingItem = shoppingItem;
             _shoppingItemStore = shoppingItemStore;
+            _usersStore = usersStore;
+            _currentUserService = currentUserService;
             _categorySuggestionService = categorySuggestionService;
             ShoppingListId = shoppingListId;
             Name = shoppingItem?.Name;
@@ -82,6 +97,13 @@ namespace Listly.ViewModel
             ItemPriority = shoppingItem?.Priority;
             SelectedCategory = shoppingItem?.Category.Name.GetDisplayWithIcon();
             Title = IsEditMode ? "Edit Item" : "Add Item";
+            _isInitializing = false;
+        }
+
+        [RelayCommand]
+        async Task SuggestCategory()
+        {
+            await SuggestCategoryAsync(Name);
         }
 
         [RelayCommand]
@@ -152,7 +174,7 @@ namespace Listly.ViewModel
 
             var hasNameChanged = !string.Equals(_shoppingItem.Name, trimmedName, StringComparison.Ordinal);
             var hasQuantityChanged = _shoppingItem.Quantity != Quantity || _shoppingItem.Unit != Unit;
-            var hasCategoryChanged = _shoppingItem.Category.Name.GetDisplayName() != SelectedCategory;
+            var hasCategoryChanged = _shoppingItem.Category.Name.GetDisplayWithIcon() != SelectedCategory;
             var hasPriorityChanged = _shoppingItem.HasPriority != HasPriority || _shoppingItem.Priority != ItemPriority;
 
             if (hasNameChanged || hasQuantityChanged || hasCategoryChanged || hasPriorityChanged)
@@ -166,6 +188,7 @@ namespace Listly.ViewModel
                 var category = CategoryHelper.FromDisplayNameAndIcon(SelectedCategory);
                 _shoppingItem.Category = new ItemCategory(category);
 
+                await SaveCategoryOverride();
                 await _shoppingItemStore.UpdateShoppingItemAsync(_shoppingItem);
                 WeakReferenceMessenger.Default.Send(new ShoppingItemUpdatedMessage(_shoppingItem));
             }
@@ -177,8 +200,29 @@ namespace Listly.ViewModel
             var priority = HasPriority == true ? ItemPriority.Value : Priority.Medium;
             var shoppingItem = new ShoppingItem(ShoppingListId, trimmedName, Quantity, Unit, new ItemCategory(category), priority, HasPriority ?? false);
 
+            await SaveCategoryOverride();
             await _shoppingItemStore.CreateShoppingItemAsync(shoppingItem);
             WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
+        }
+
+        private async Task SaveCategoryOverride()
+        {
+            if (!_wasCategoryManuallyChanged)
+                return;
+
+            if (string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(SelectedCategory))
+                return;
+
+            var userId = _currentUserService.UserId;
+            if (string.IsNullOrWhiteSpace(userId))
+                return;
+
+            var category = CategoryHelper.FromDisplayNameAndIcon(SelectedCategory);
+
+            await _usersStore.SaveUserCategoryOverride(
+                userId,
+                category.ToString(),
+                Name);
         }
 
         partial void OnNameChanged(string value)
@@ -186,31 +230,42 @@ namespace Listly.ViewModel
             OnPropertyChanged(nameof(CanSave));
             OnPropertyChanged(nameof(HasChanges));
             SaveCommand.NotifyCanExecuteChanged();
-            _ = SuggestCategoryAsync(value);
+
+            if (_isInitializing)
+                return;
+
+            OnPropertyChanged(nameof(ShowSuggestButton));
         }
 
         private async Task SuggestCategoryAsync(string name)
         {
-            if (string.IsNullOrWhiteSpace(name) || name.Length < 2)
+            if (string.IsNullOrWhiteSpace(name) || name.Length < 3)
                 return;
 
             _suggestionCts?.Cancel();
             _suggestionCts = new CancellationTokenSource();
 
+            IsSuggestingCategory = true;
+            OnPropertyChanged(nameof(ShowSuggestButton));
+
             try
             {
-                await Task.Delay(400, _suggestionCts.Token);
-
-                var category = await _categorySuggestionService.SuggestCategoryAsync(name);
+                var category = await _categorySuggestionService.SuggestCategoryAsync(name, _currentUserService.UserId ?? Guid.Empty.ToString());
 
                 if (category != null)
                 {
+                    _isSettingCategoryProgrammatically = true;
                     SelectedCategory = category.Value.GetDisplayWithIcon();
+                    _isSettingCategoryProgrammatically = false;
                 }
             }
             catch (OperationCanceledException)
             {
-                // expected when user keeps typing
+                // expected when popup closes or user types again
+            }
+            finally
+            {
+                IsSuggestingCategory = false;
             }
         }
 
@@ -228,8 +283,12 @@ namespace Listly.ViewModel
             SaveCommand.NotifyCanExecuteChanged();
         }
 
-        partial void OnSelectedCategoryChanged(string value)
+        partial void OnSelectedCategoryChanged(string? value)
         {
+            if (!_isInitializing && !_isSettingCategoryProgrammatically)
+            {
+                _wasCategoryManuallyChanged = true;
+            }
             OnPropertyChanged(nameof(CanSave));
             OnPropertyChanged(nameof(HasChanges));
             SaveCommand.NotifyCanExecuteChanged();

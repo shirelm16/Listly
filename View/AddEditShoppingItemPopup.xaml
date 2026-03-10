@@ -17,7 +17,7 @@
             <Shadow Brush="Black" Opacity="0.25" Radius="24" Offset="0,8"/>
         </Border.Shadow>
 
-        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
             <!-- Title -->
             <Label Grid.Row="0"
                    Text="{Binding Title}"
@@ -43,26 +43,79 @@
                        Margin="16,0"/>
             </Border>
 
+            <!-- Category Row with AI suggestion indicator -->
             <Border Grid.Row="2"
                     Stroke="{StaticResource Outline}"
                     StrokeThickness="1"
                     BackgroundColor="{StaticResource Surface}"
                     StrokeShape="RoundRectangle 12"
                     HeightRequest="56">
-                <Picker x:Name="CategoryPicker"
-                        Title="Category"
-                        ItemsSource="{Binding Categories}"
-                        SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                        BackgroundColor="White"
-                        TextColor="{StaticResource OnSurface}"
-                        TitleColor="{StaticResource OnSurfaceVariant}"
-                        FontSize="14"
-                        VerticalOptions="Center"
-                        Margin="16,0"> 
-                </Picker>
+                <Grid ColumnDefinitions="*,Auto,Auto">
+                    <Picker x:Name="CategoryPicker"
+                            Grid.Column="0"
+                            Title="Category"
+                            ItemsSource="{Binding Categories}"
+                            SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource OnSurface}"
+                            TitleColor="{StaticResource OnSurfaceVariant}"
+                            FontSize="14"
+                            VerticalOptions="Center"
+                            Margin="16,0"/>
+
+                    <!-- ✨ button inside the field, only visible when appropriate -->
+                    <Grid Grid.Column="1"
+                          IsVisible="{Binding ShowSuggestButton}"
+                          VerticalOptions="Center"
+                          Margin="0,0,4,0"
+                          WidthRequest="36"
+                          HeightRequest="36">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SuggestCategoryCommand}"/>
+                        </Grid.GestureRecognizers>
+
+                        <!-- Glowing aura behind the sparkle -->
+                        <BoxView x:Name="SparkleAura"
+                                 WidthRequest="44"
+                                 HeightRequest="44"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 Opacity="0">
+                            <BoxView.Background>
+                                <RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+                                    <GradientStop Color="#FFFFD700" Offset="0.0"/>
+                                    <GradientStop Color="#00FFD700" Offset="1.0"/>
+                                </RadialGradientBrush>
+                            </BoxView.Background>
+                        </BoxView>
+
+                        <Label x:Name="SparkleLabel"
+                               Text="✨"
+                               FontSize="18"
+                               VerticalOptions="Center"
+                               HorizontalOptions="Center"/>
+                    </Grid>
+
+                    <!-- Spinner replaces the ✨ button while loading -->
+                    <ActivityIndicator Grid.Column="2"
+                                       IsRunning="{Binding IsSuggestingCategory}"
+                                       IsVisible="{Binding IsSuggestingCategory}"
+                                       Color="{StaticResource Primary}"
+                                       WidthRequest="20"
+                                       HeightRequest="20"
+                                       VerticalOptions="Center"
+                                       Margin="0,0,12,0"/>
+                </Grid>
             </Border>
 
-            <HorizontalStackLayout Grid.Row="3" Spacing="10" Margin="5,0">
+            <Label Grid.Row="3"
+                   Text="✨ Tap to auto-suggest a category"
+                   FontSize="11"
+                   TextColor="{StaticResource OnSurfaceVariant}"
+                   IsVisible="{Binding ShowSuggestButton}"
+                   Margin="4,-4,0,0"/>
+
+            <HorizontalStackLayout Grid.Row="4" Spacing="10" Margin="5,0">
                 <Label Text="Set Priority" 
                        VerticalOptions="Center" 
                        FontSize="15"/>
@@ -71,7 +124,7 @@
                             OnColor="#2196F3"/>
             </HorizontalStackLayout>
 
-            <Border Grid.Row="4"
+            <Border Grid.Row="5"
                     Stroke="{StaticResource Outline}"
                     StrokeThickness="1"
                     BackgroundColor="{StaticResource Surface}"
@@ -91,7 +144,7 @@
             </Border>
 
             <!-- Quantity Section -->
-            <StackLayout Grid.Row="5" Spacing="12">
+            <StackLayout Grid.Row="6" Spacing="12">
                 <Label Text="Quantity"
                        FontSize="16"
                        FontAttributes="Bold"
@@ -153,7 +206,7 @@
             </StackLayout>
 
             <!-- Action Buttons -->
-            <Grid Grid.Row="6" ColumnDefinitions="*,*" ColumnSpacing="16">
+            <Grid Grid.Row="7" ColumnDefinitions="*,*" ColumnSpacing="16">
                 <Button Grid.Column="0"
                     Text="Cancel"
                     Command="{Binding CancelCommand}"

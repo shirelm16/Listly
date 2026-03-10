@@ -14,6 +14,7 @@ namespace Listly.Store
         public Task CreateOrUpdateUser(User user);
         public Task<UserDocument> GetUser(string userId);
         public Task UpdateDeviceToken(string userId, string token);
+        public Task SaveUserCategoryOverride(string userId, string category, string normalizedItemName);
     }
 
     public class FirestoreUsersStore : IUsersStore
@@ -57,6 +58,22 @@ namespace Listly.Store
             var userDoc = await _collection.GetDocument(userId)
                                 .GetDocumentSnapshotAsync<UserDocument>();
             return userDoc.Data;
+        }
+
+        public async Task SaveUserCategoryOverride(string userId, string category, string itemName)
+        {
+            var normalizedName = ItemNameNormalizer.Normalize(itemName);
+            var docRef = _collection.GetDocument(userId)
+                .GetCollection("categoryOverrides")
+                .GetDocument(normalizedName);
+
+            var categoryOverride = new CategoryOverrideDocument
+            {
+                Category = category,
+                LastModifiedUnix = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds()
+            };
+
+            await docRef.SetDataAsync(categoryOverride);
         }
     }
 }

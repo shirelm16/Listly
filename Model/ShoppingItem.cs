@@ -1,18 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SQLite;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text.RegularExpressions;
 
 namespace Listly.Model
 {
     public partial class ShoppingItem : ObservableObject
     {
-        [PrimaryKey]
         public Guid Id { get; set; }
 
-        [Indexed]
         public Guid ShoppingListId { get; set; }
 
         [ObservableProperty]
@@ -162,5 +160,19 @@ namespace Listly.Model
 
         private static readonly Dictionary<string, Category> _displayToEnum =
             _categoryInfo.ToDictionary(kvp => kvp.Value.DisplayName, kvp => kvp.Key);
+    }
+
+    public static class ItemNameNormalizer
+    {
+        public static string Normalize(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return string.Empty;
+
+            return Regex.Replace(
+                text.Trim().ToLowerInvariant(),
+                @"\s+",
+                " ");
+        }
     }
 }
