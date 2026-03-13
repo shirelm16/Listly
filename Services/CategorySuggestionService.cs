@@ -32,7 +32,7 @@ namespace Listly.Services
                 categories = Enum.GetNames(typeof(Category))
             };
 
-            var response = await _httpClient.PostAsJsonAsync("https://categorizeitem-tjbk5gsn3q-uc.a.run.app", request);
+            var response = await _httpClient.PostAsJsonAsync("https://categorizeitem-tjbk5gsn3q-zf.a.run.app", request);
 
             if (!response.IsSuccessStatusCode)
                 return null;

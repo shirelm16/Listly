@@ -8,6 +8,18 @@ admin.initializeApp();
 
 const openAiApiKey = defineSecret("OPENAI_API_KEY");
 
+let openAiClient = null;
+/**
+ * Returns a singleton OpenAI client instance.
+ * @return {OpenAI} The OpenAI client.
+ */
+function getOpenAiClient() {
+  if (!openAiClient) {
+    openAiClient = new OpenAI({apiKey: openAiApiKey.value()});
+  }
+  return openAiClient;
+}
+
 exports.notifyOnSharedListChange = onDocumentWritten(
     "shoppingLists/{listId}/items/{itemId}",
     async (event) => {
@@ -84,7 +96,12 @@ exports.notifyOnSharedListChange = onDocumentWritten(
     });
 
 exports.categorizeItem = onRequest(
-    {secrets: [openAiApiKey]},
+    {
+      secrets: [openAiApiKey],
+      minInstances: 1,
+      timeoutSeconds: 10,
+      region: "me-west1",
+    },
     async (req, res) => {
       try {
         if (req.method !== "POST") {
@@ -117,7 +134,15 @@ exports.categorizeItem = onRequest(
             .collection("categoryOverrides")
             .doc(normalizedItemName);
 
-        const userOverrideDoc = await userOverrideRef.get();
+        const cacheRef = admin
+            .firestore()
+            .collection("categoryCache")
+            .doc(normalizedItemName);
+
+        const [userOverrideDoc, cacheDoc] = await Promise.all([
+          userOverrideRef.get(),
+          cacheRef.get(),
+        ]);
 
         if (userOverrideDoc.exists) {
           res.json({
@@ -127,13 +152,6 @@ exports.categorizeItem = onRequest(
           return;
         }
 
-        const cacheRef = admin
-            .firestore()
-            .collection("categoryCache")
-            .doc(normalizedItemName);
-
-        const cacheDoc = await cacheRef.get();
-
         if (cacheDoc.exists) {
           res.json({
             category: cacheDoc.data().category,
@@ -142,9 +160,7 @@ exports.categorizeItem = onRequest(
           return;
         }
 
-        const client = new OpenAI({
-          apiKey: openAiApiKey.value(),
-        });
+        const client = getOpenAiClient();
 
         const categories = req.body && req.body.categories;
 
