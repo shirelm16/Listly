@@ -9,8 +9,7 @@
              xmlns:selectors="clr-namespace:Listly.Selectors"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              BackgroundColor="{StaticResource Background}"
-             x:Name="Page"
-             HideSoftInputOnTapped="True">
+             x:Name="Page">
     <Grid RowDefinitions="Auto,Auto,*,Auto">
         <!-- Header with List Name -->
         <Border Grid.Row="0" 
@@ -21,15 +20,16 @@
             </Border.Shadow>
 
             <Grid ColumnDefinitions="Auto,*,Auto" Padding="10,15,20,15" ColumnSpacing="10">
-                <ContentView Grid.Column="0" WidthRequest="20" HeightRequest="20" VerticalOptions="Center">
+                <ContentView Grid.Column="0" WidthRequest="44" HeightRequest="44" VerticalOptions="Center">
+                    <ContentView.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding BackCommand}" />
+                    </ContentView.GestureRecognizers>
                     <Image Source="back_33dp.svg"
+                           WidthRequest="20"
+                           HeightRequest="20"
                            VerticalOptions="Center"
                            HorizontalOptions="Start"
-                           Aspect="AspectFit">
-                        <Image.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding BackCommand}" />
-                        </Image.GestureRecognizers>
-                    </Image>
+                           Aspect="AspectFit" />
                 </ContentView>
                 <Label Grid.Column="1" 
                        Text="{Binding ShoppingList.Name}"
@@ -39,16 +39,20 @@
                        VerticalOptions="Center"
                        HorizontalOptions="Start"/>
 
-                <ContentView Grid.Column="2" WidthRequest="20" HeightRequest="20" VerticalOptions="Center">
+                <Grid Grid.Column="2"
+                      WidthRequest="44"
+                      HeightRequest="44"
+                      VerticalOptions="Center">
+                    <Grid.Behaviors>
+                        <toolkit:TouchBehavior Command="{Binding ShowMoreMenuCommand}" />
+                    </Grid.Behaviors>
                     <Image Source="dots.png"
+                           WidthRequest="22"
+                           HeightRequest="22"
                            VerticalOptions="Center"
-                           HorizontalOptions="End"
-                           Aspect="AspectFit">
-                        <Image.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding ShowMoreMenuCommand}" />
-                        </Image.GestureRecognizers>
-                    </Image>
-                </ContentView>
+                           HorizontalOptions="Center"
+                           Aspect="AspectFit" />
+                </Grid>
             </Grid>
         </Border>
         <Grid Grid.Row="1"

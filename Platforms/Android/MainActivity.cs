@@ -39,6 +39,27 @@ namespace Listly
             FirebaseAuthGoogleImplementation.HandleActivityResultAsync(requestCode, resultCode, data);
         }
 
+        public override bool DispatchTouchEvent(Android.Views.MotionEvent e)
+        {
+            if (e.Action == Android.Views.MotionEventActions.Down)
+            {
+                var view = CurrentFocus;
+                if (view is Android.Widget.EditText)
+                {
+                    var rect = new Android.Graphics.Rect();
+                    view.GetGlobalVisibleRect(rect);
+                    if (!rect.Contains((int)e.RawX, (int)e.RawY))
+                    {
+                        var imm = GetSystemService(Android.Content.Context.InputMethodService)
+                                  as Android.Views.InputMethods.InputMethodManager;
+                        imm?.HideSoftInputFromWindow(view.WindowToken, 0);
+                        view.ClearFocus();
+                    }
+                }
+            }
+            return base.DispatchTouchEvent(e);
+        }
+
         private void HandleIntent(Intent intent)
         {
             var dataString = intent?.DataString;
