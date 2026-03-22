@@ -21,6 +21,8 @@ namespace Listly.ViewModel
         [ObservableProperty]
         ObservableCollection<ShoppingList> _shoppingLists = new();
 
+        private string? _loadedForUserId;
+
         public ShoppingListsViewModel(IShoppingListStore shoppingListStore, ICurrentUserService currentUserService)
         {
             Title = "My Lists";
@@ -111,6 +113,10 @@ namespace Listly.ViewModel
             if (IsBusy)
                 return;
 
+            var currentUserId = _currentUserService.UserId;
+            if (ShoppingLists.Count > 0 && _loadedForUserId == currentUserId)
+                return;
+
             try
             {
                 IsBusy = true;
@@ -122,6 +128,7 @@ namespace Listly.ViewModel
                 foreach (var shoppingList in shoppingLists)
                     ShoppingLists.Add(shoppingList);
 
+                _loadedForUserId = currentUserId;
             }
             catch (Exception ex)
             {
