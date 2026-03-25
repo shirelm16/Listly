@@ -36,31 +36,6 @@ namespace Listly.ViewModel
             _categorySuggestionService = categorySuggestionService;
             _purchasedItems = shoppingList == null ? [] :
                 shoppingList.Items.Where(item => item.IsPurchased).ToList();
-
-            WeakReferenceMessenger.Default.Register<ShoppingItemCreatedMessage>(this, async (r, m) =>
-            {
-                var item = m.Value;
-                if (item.ShoppingListId == ShoppingList?.Id)
-                {
-                    ShoppingList.Items.Add(item);
-                    SubscribeToItemEvents(item);
-
-                    _activeBuckets.AddItem(item);
-                    UpdateItemCollections();
-                    WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
-                }
-            });
-
-            WeakReferenceMessenger.Default.Register<ShoppingItemUpdatedMessage>(this, async (r, m) =>
-            {
-                var item = m.Value;
-                var itemChanged = ShoppingList.Items.First(i => i.Id == item.Id);
-                itemChanged.Name = item.Name;
-                itemChanged.IsPurchased = item.IsPurchased;
-                itemChanged.Quantity = item.Quantity;
-                itemChanged.Category = item.Category;
-                UpdateItemCollections();
-            });
         }
 
         [ObservableProperty]

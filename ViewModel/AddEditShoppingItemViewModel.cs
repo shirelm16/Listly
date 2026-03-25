@@ -190,7 +190,6 @@ namespace Listly.ViewModel
 
                 await SaveCategoryOverride();
                 await _shoppingItemStore.UpdateShoppingItemAsync(_shoppingItem);
-                WeakReferenceMessenger.Default.Send(new ShoppingItemUpdatedMessage(_shoppingItem));
             }
         }
 
@@ -202,7 +201,6 @@ namespace Listly.ViewModel
 
             await SaveCategoryOverride();
             await _shoppingItemStore.CreateShoppingItemAsync(shoppingItem);
-            WeakReferenceMessenger.Default.Send(new ShoppingItemCreatedMessage(shoppingItem));
         }
 
         private async Task SaveCategoryOverride()
