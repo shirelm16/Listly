@@ -21,6 +21,8 @@ namespace Listly.ViewModel
         private IBucketSortService<ShoppingItem> _activeBuckets;
         private readonly ICategorySuggestionService _categorySuggestionService;
         private List<ShoppingItem> _purchasedItems;
+        private IDisposable? _itemsListener;
+        private bool _isApplyingRemoteUpdate = false;
 
         private ShoppingItemsGroup? _activeGroup;
         private ShoppingItemsGroup? _purchasedGroup;
@@ -41,11 +43,7 @@ namespace Listly.ViewModel
                 if (item.ShoppingListId == ShoppingList?.Id)
                 {
                     ShoppingList.Items.Add(item);
-                    item.PropertyChanged += ShoppingItem_PropertyChanged;
-                    item.ItemPurchased += ShoppingItem_OnItemPurchased;
-                    item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
-                    item.CategoryChanged += ShoppingItem_OnCategoryChanged;
-                    item.PriorityChanged += ShoppingItem_OnPriorityChanged;
+                    SubscribeToItemEvents(item);
 
                     _activeBuckets.AddItem(item);
                     UpdateItemCollections();
@@ -349,15 +347,14 @@ namespace Listly.ViewModel
             SetActiveItemsBySortType(shoppingList?.SortType);
             _purchasedItems = new List<ShoppingItem>();
 
+            _itemsListener?.Dispose();
+            _itemsListener = null;
+
             if (value?.Items != null)
             {
                 foreach (var item in value.Items)
                 {
-                    item.PropertyChanged += ShoppingItem_PropertyChanged;
-                    item.ItemPurchased += ShoppingItem_OnItemPurchased;
-                    item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
-                    item.CategoryChanged += ShoppingItem_OnCategoryChanged;
-                    item.PriorityChanged += ShoppingItem_OnPriorityChanged;
+                    SubscribeToItemEvents(item);
 
                     if (item.IsPurchased)
                     {
@@ -369,6 +366,8 @@ namespace Listly.ViewModel
                     }
                 }
                 InitializeGroups();
+
+                _itemsListener = _shoppingItemStore.ListenToItems(value.Id, OnRemoteItemsChanged);
             }
         }
 
@@ -393,8 +392,10 @@ namespace Listly.ViewModel
 
         private async void ShoppingItem_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            if (_isApplyingRemoteUpdate) return;
+
             var item = sender as ShoppingItem;
-            await _shoppingItemStore.UpdateShoppingItemAsync(item);
+            await _shoppingItemStore.UpdateShoppingItemAsync(item, e.PropertyName);
 
             WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
         }
@@ -608,6 +609,109 @@ namespace Listly.ViewModel
             return text?.Trim().ToLowerInvariant() ?? string.Empty;
         }
 
+        private void SubscribeToItemEvents(ShoppingItem item)
+        {
+            item.PropertyChanged += ShoppingItem_PropertyChanged;
+            item.ItemPurchased += ShoppingItem_OnItemPurchased;
+            item.ItemUnpurchased += ShoppingItem_OnItemUnpurchased;
+            item.CategoryChanged += ShoppingItem_OnCategoryChanged;
+            item.PriorityChanged += ShoppingItem_OnPriorityChanged;
+        }
+
+        private void UnsubscribeFromItemEvents(ShoppingItem item)
+        {
+            item.PropertyChanged -= ShoppingItem_PropertyChanged;
+            item.ItemPurchased -= ShoppingItem_OnItemPurchased;
+            item.ItemUnpurchased -= ShoppingItem_OnItemUnpurchased;
+            item.CategoryChanged -= ShoppingItem_OnCategoryChanged;
+            item.PriorityChanged -= ShoppingItem_OnPriorityChanged;
+        }
+
+        private void OnRemoteItemsChanged(IEnumerable<ShoppingItem> remoteItems)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (ShoppingList == null) return;
+
+                _isApplyingRemoteUpdate = true;
+                try
+                {
+                    var remoteById = remoteItems.ToDictionary(i => i.Id);
+                    var localById = ShoppingList.Items.ToDictionary(i => i.Id);
+                    bool needsUpdate = false;
+
+                    // Items deleted remotely
+                    foreach (var id in localById.Keys.Except(remoteById.Keys).ToList())
+                    {
+                        var item = localById[id];
+                        UnsubscribeFromItemEvents(item);
+                        if (item.IsPurchased)
+                            _purchasedItems.Remove(item);
+                        else
+                            _activeBuckets.RemoveItem(item);
+                        ShoppingList.Items.Remove(item);
+                        needsUpdate = true;
+                    }
+
+                    // Items added remotely
+                    foreach (var id in remoteById.Keys.Except(localById.Keys).ToList())
+                    {
+                        var item = remoteById[id];
+                        SubscribeToItemEvents(item);
+                        ShoppingList.Items.Add(item);
+                        if (item.IsPurchased)
+                            _purchasedItems.Add(item);
+                        else
+                            _activeBuckets.AddItem(item);
+                        needsUpdate = true;
+                    }
+
+                    // Items updated remotely
+                    foreach (var remoteItem in remoteById.Values.Where(i => localById.ContainsKey(i.Id)))
+                    {
+                        var localItem = localById[remoteItem.Id];
+                        if (ShoppingItem.AreItemsEqual(localItem, remoteItem)) continue;
+
+                        var wasPurchased = localItem.IsPurchased;
+
+                        // Suppress event handlers while applying remote values
+                        UnsubscribeFromItemEvents(localItem);
+
+                        localItem.UpdateFrom(remoteItem);
+
+                        SubscribeToItemEvents(localItem);
+
+                        if (wasPurchased != remoteItem.IsPurchased)
+                        {
+                            if (remoteItem.IsPurchased)
+                            {
+                                _activeBuckets.RemoveItem(localItem);
+                                _purchasedItems.Add(localItem);
+                            }
+                            else
+                            {
+                                _purchasedItems.Remove(localItem);
+                                _activeBuckets.AddItem(localItem);
+                            }
+                        }
+                        else if (!remoteItem.IsPurchased)
+                        {
+                            _activeBuckets.UpdateItem(localItem);
+                        }
+
+                        needsUpdate = true;
+                    }
+
+                    if (needsUpdate)
+                        UpdateItemCollections();
+                }
+                finally
+                {
+                    _isApplyingRemoteUpdate = false;
+                }
+            });
+        }
+
         public void Dispose()
         {
             Dispose(true);
@@ -622,17 +726,14 @@ namespace Listly.ViewModel
                 WeakReferenceMessenger.Default.UnregisterAll(this);
 
                 _hideToastCancellation?.Cancel();
+                _itemsListener?.Dispose();
 
                 // Unsubscribe from events of items in the current ShoppingList
                 if (ShoppingList != null)
                 {
                     foreach (var item in ShoppingList.Items ?? Enumerable.Empty<ShoppingItem>())
                     {
-                        item.PropertyChanged -= ShoppingItem_PropertyChanged;
-                        item.ItemPurchased -= ShoppingItem_OnItemPurchased;
-                        item.ItemUnpurchased -= ShoppingItem_OnItemUnpurchased;
-                        item.CategoryChanged -= ShoppingItem_OnCategoryChanged;
-                        item.PriorityChanged -= ShoppingItem_OnPriorityChanged;
+                        UnsubscribeFromItemEvents(item);
                     }
                 }
             }

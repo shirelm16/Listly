@@ -56,6 +56,28 @@ namespace Listly.Model
 
         public event Action<ShoppingItem>? PriorityChanged;
 
+        public static bool AreItemsEqual(ShoppingItem a, ShoppingItem b)
+        {
+            return a.Name == b.Name &&
+                   a.Quantity == b.Quantity &&
+                   a.Unit == b.Unit &&
+                   a.IsPurchased == b.IsPurchased &&
+                   a.Category?.Name == b.Category?.Name &&
+                   a.HasPriority == b.HasPriority &&
+                   a.Priority == b.Priority;
+        }
+
+        public void UpdateFrom(ShoppingItem other)
+        {
+            Name = other.Name;
+            Quantity = other.Quantity;
+            Unit = other.Unit;
+            Category = other.Category;
+            HasPriority = other.HasPriority;
+            Priority = other.Priority;
+            IsPurchased = other.IsPurchased;
+        }
+
         partial void OnIsPurchasedChanged(bool value)
         {
             if (value)

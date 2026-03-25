@@ -23,13 +23,28 @@ namespace Listly.Store
     {
         Task CreateShoppingItemAsync(ShoppingItem item);
         Task DeleteShoppingItemAsync(Guid shoppingListId, Guid itemId);
-        Task UpdateShoppingItemAsync(ShoppingItem shoppingItem);
+        Task UpdateShoppingItemAsync(ShoppingItem shoppingItem, string? changedProperty = null);
+        IDisposable ListenToItems(Guid listId, Action<IEnumerable<ShoppingItem>> onChanged);
     }
 
     public class FirestoreShoppingListStore : IShoppingListStore, IShoppingItemStore
     {
         private readonly ICollectionReference _collection;
         private IFirebaseAuth _auth;
+
+        // Maps C# property names to Firestore field names for field-level writes.
+        // Only properties that map directly to a single stored field are included;
+        // anything absent falls back to a full-document write.
+        private static readonly Dictionary<string, string> ItemFieldMap = new()
+        {
+            [nameof(ShoppingItem.Name)]        = "name",
+            [nameof(ShoppingItem.Quantity)]    = "quantity",
+            [nameof(ShoppingItem.Unit)]        = "unit",
+            [nameof(ShoppingItem.IsPurchased)] = "isPurchased",
+            [nameof(ShoppingItem.Category)]    = "category",
+            [nameof(ShoppingItem.HasPriority)] = "has_priority",
+            [nameof(ShoppingItem.Priority)]    = "priority",
+        };
 
         public FirestoreShoppingListStore(IFirebaseAuth auth)
         {
@@ -122,7 +137,7 @@ namespace Listly.Store
             await docRef.SetDataAsync(doc);
         }
 
-        public async Task UpdateShoppingItemAsync(ShoppingItem shoppingItem)
+        public async Task UpdateShoppingItemAsync(ShoppingItem shoppingItem, string? changedProperty = null)
         {
             var itemRef = _collection
                 .GetDocument(shoppingItem.ShoppingListId.ToString())
@@ -130,7 +145,11 @@ namespace Listly.Store
                 .GetDocument(shoppingItem.Id.ToString());
 
             var doc = ShoppingItemDocument.FromShoppingItem(shoppingItem);
-            await itemRef.SetDataAsync(doc, SetOptions.Merge());
+
+            if (changedProperty != null && ItemFieldMap.TryGetValue(changedProperty, out var firestoreField))
+                await itemRef.SetDataAsync(doc, SetOptions.MergeFields(firestoreField));
+            else
+                await itemRef.SetDataAsync(doc, SetOptions.Merge());
         }
 
         public async Task<ShoppingList> GetSharedListByShareIdAsync(string shareId)
@@ -176,6 +195,20 @@ namespace Listly.Store
                 shoppingList.Items.Add(item);
             }
             return shoppingList;
+        }
+
+        public IDisposable ListenToItems(Guid listId, Action<IEnumerable<ShoppingItem>> onChanged)
+        {
+            return _collection
+                .GetDocument(listId.ToString())
+                .GetCollection("items")
+                .AddSnapshotListener<ShoppingItemDocument>((snapshot) =>
+                {
+                    var items = snapshot.Documents
+                        .Select(doc => doc.Data.ToShoppingItem())
+                        .ToList();
+                    onChanged(items);
+                });
         }
     }
 }
