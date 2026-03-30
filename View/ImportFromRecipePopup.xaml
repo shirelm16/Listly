@@ -48,20 +48,40 @@
                            Margin="16,0"/>
                 </Border>
 
+                <!-- Include Appliances -->
+                <HorizontalStackLayout>
+                    <CheckBox IsChecked="{Binding IncludeAppliances}"
+                              Color="{StaticResource Primary}"/>
+                    <Label Text="Include appliances (mixer, baking dish, etc.)"
+                           FontSize="13"
+                           TextColor="{StaticResource OnSurfaceVariant}"
+                           VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+
+                <!-- Language -->
+                <StackLayout Spacing="6">
+                    <Label Text="Output language"
+                           FontSize="13"
+                           TextColor="{StaticResource OnSurfaceVariant}"/>
+                    <Border Stroke="{StaticResource Outline}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 12"
+                            HeightRequest="56">
+                        <Picker ItemsSource="{Binding LanguageOptions}"
+                                SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                                FontSize="14"
+                                TextColor="{StaticResource OnSurface}"
+                                TitleColor="{StaticResource OnSurfaceVariant}"
+                                VerticalOptions="Center"
+                                Margin="16,0"/>
+                    </Border>
+                </StackLayout>
+
                 <Label Text="{Binding ErrorMessage}"
                        TextColor="Red"
                        FontSize="12"
                        IsVisible="{Binding HasError}"
                        Margin="4,0"/>
-
-                <Button Text="Extract Ingredients"
-                        Command="{Binding ExtractCommand}"
-                        BackgroundColor="{StaticResource Primary}"
-                        TextColor="{StaticResource OnPrimary}"
-                        HeightRequest="48"
-                        CornerRadius="12"
-                        FontSize="16"
-                        FontAttributes="Bold"/>
             </StackLayout>
 
             <!-- STATE: Loading -->
@@ -199,6 +219,18 @@
                         CornerRadius="12"
                         FontSize="16"
                         FlexLayout.Grow="1"/>
+
+                <Button Text="Extract Ingredients"
+                        Command="{Binding ExtractCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource OnPrimary}"
+                        HeightRequest="48"
+                        CornerRadius="12"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        FlexLayout.Grow="1"
+                        Margin="16,0,0,0"
+                        IsVisible="{Binding State, Converter={StaticResource EnumEqualsConverter}, ConverterParameter=EnterUrl}"/>
 
                 <Button Text="{Binding AddButtonText}"
                         Command="{Binding AddCommand}"

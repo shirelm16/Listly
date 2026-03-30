@@ -11,7 +11,7 @@ namespace Listly.Services
 {
     public interface IImportFromRecipeService
     {
-        public Task<IEnumerable<ShoppingItemSuggestion>> ImportFromOnlineRecipeAsync(string url);
+        public Task<IEnumerable<ShoppingItemSuggestion>> ImportFromOnlineRecipeAsync(string url, bool includeAppliances, string language);
     }
 
     public class ImportFromRecipeService : IImportFromRecipeService
@@ -22,11 +22,13 @@ namespace Listly.Services
         {
             _httpClient = httpClient;
         }
-        public async Task<IEnumerable<ShoppingItemSuggestion>> ImportFromOnlineRecipeAsync(string url)
+        public async Task<IEnumerable<ShoppingItemSuggestion>> ImportFromOnlineRecipeAsync(string url, bool includeAppliances, string language)
         {
             var request = new
             {
                 url,
+                includeAppliances,
+                language,
                 categories = Enum.GetNames(typeof(Category))
             };
 

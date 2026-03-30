@@ -241,6 +241,19 @@ exports.extractRecipeItems = onRequest(
           return;
         }
 
+        const includeAppliances = req.body && req.body.includeAppliances;
+        const applianceRule = includeAppliances ?
+          "- Include special appliances or equipment mentioned " +
+          "in the recipe (e.g. food processor, mixer, baking dish)" :
+          "- Do not include appliances or kitchen equipment";
+
+        const language = req.body && req.body.language;
+        const languageRule = language === "Hebrew" ?
+          "- Return all ingredient names in Hebrew" :
+          language === "English" ?
+            "- Return all ingredient names in English" :
+            "- Return ingredient names in the same language as the recipe";
+
         // Fetch the page
         const pageResponse = await fetch(url);
         if (!pageResponse.ok) {
@@ -303,7 +316,9 @@ exports.extractRecipeItems = onRequest(
     treat the number as the quantity with unit null.
   - Do not include optional garnishes or "for serving" items
   - Assign each item exactly one category from the provided list. 
-    If none fit, use "Other"`,
+    If none fit, use "Other"
+  ${languageRule}
+  ${applianceRule}`,
             },
             {
               role: "user",

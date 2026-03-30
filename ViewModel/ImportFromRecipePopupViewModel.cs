@@ -30,6 +30,19 @@ namespace Listly.ViewModel
         [ObservableProperty] 
         bool hasError;
 
+        [ObservableProperty] 
+        bool includeAppliances = false;
+
+        public List<string> LanguageOptions { get; } = new()
+        {
+            "Match recipe language",
+            "Hebrew",
+            "English"
+        };
+
+        [ObservableProperty] 
+        string selectedLanguage = "Match recipe language";
+
         public ObservableCollection<ShoppingItemSuggestion> Items { get; } = new();
 
         public bool CanExtract => !string.IsNullOrWhiteSpace(Url);
@@ -64,7 +77,7 @@ namespace Listly.ViewModel
 
             try
             {
-                var suggestions = await _importFromRecipeService.ImportFromOnlineRecipeAsync(Url);
+                var suggestions = await _importFromRecipeService.ImportFromOnlineRecipeAsync(Url, IncludeAppliances, SelectedLanguage);
 
                 Items.Clear();
                 foreach (var item in suggestions)
