@@ -22,6 +22,7 @@ namespace Listly.Store
     public interface IShoppingItemStore
     {
         Task CreateShoppingItemAsync(ShoppingItem item);
+        Task CreateShoppingItemsBatchAsync(IEnumerable<ShoppingItem> items);
         Task DeleteShoppingItemAsync(Guid shoppingListId, Guid itemId);
         Task UpdateShoppingItemAsync(ShoppingItem shoppingItem, string? changedProperty = null);
         IDisposable ListenToItems(Guid listId, Action<IEnumerable<ShoppingItem>> onChanged);
@@ -209,6 +210,20 @@ namespace Listly.Store
                         .ToList();
                     onChanged(items);
                 });
+        }
+
+        public async Task CreateShoppingItemsBatchAsync(IEnumerable<ShoppingItem> items)
+        {
+            var batch = CrossFirebaseFirestore.Current.CreateBatch();
+            foreach (var item in items)
+            {
+                var doc = _collection
+                    .GetDocument(item.ShoppingListId.ToString())
+                    .GetCollection("items")
+                    .GetDocument(item.Id.ToString());
+                batch.SetData(doc, ShoppingItemDocument.FromShoppingItem(item));
+            }
+            await batch.CommitAsync();
         }
     }
 }

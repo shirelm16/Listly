@@ -17,17 +17,19 @@ namespace Listly.ViewModel
     {
         private readonly IShoppingListStore _shoppingListStore;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IImportFromRecipeService _importFromRecipeService;
 
         [ObservableProperty]
         ObservableCollection<ShoppingList> _shoppingLists = new();
 
         private string? _loadedForUserId;
 
-        public ShoppingListsViewModel(IShoppingListStore shoppingListStore, ICurrentUserService currentUserService)
+        public ShoppingListsViewModel(IShoppingListStore shoppingListStore, ICurrentUserService currentUserService, IImportFromRecipeService importFromRecipeService)
         {
             Title = "My Lists";
             _shoppingListStore = shoppingListStore;
             _currentUserService = currentUserService;
+            _importFromRecipeService = importFromRecipeService;
             WeakReferenceMessenger.Default.Register<ShoppingListUpdatedMessage>(this, async (r, m) =>
             {
                 var list = m.Value;
@@ -40,6 +42,23 @@ namespace Listly.ViewModel
                 var list = m.Value;
                 await _shoppingListStore.CreateShoppingListAsync(list);
                 ShoppingLists.Add(list);
+            });
+
+            WeakReferenceMessenger.Default.Register<CreateListFromRecipeMessage>(this, async (r, m) =>
+            {
+                var newList = new ShoppingList(m.Value.ListName);
+                await _shoppingListStore.CreateShoppingListAsync(newList);
+                ShoppingLists.Add(newList);
+
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    await Shell.Current.GoToAsync(nameof(ShoppingListDetailsPage), new Dictionary<string, object>
+                    {
+                        { "ShoppingList", newList }
+                    });
+
+                    WeakReferenceMessenger.Default.Send(new AddRecipeItemsToListMessage(newList.Id, m.Value.Items));
+                });         
             });
         }
 
@@ -92,6 +111,25 @@ namespace Listly.ViewModel
         async Task AddList()
         {
             var popup = new AddShoppingListPopup();
+            await MopupService.Instance.PushAsync(popup);
+        }
+
+        [RelayCommand]
+        async Task ShowAddMenu()
+        {
+            var popup = new AddListMenuPopup(new AddListMenuViewModel(
+                onNewList: async () =>
+                {
+                    await MopupService.Instance.PopAsync();
+                    await AddList();
+                },
+                onFromRecipe: async () =>
+                {
+                    await MopupService.Instance.PopAsync();
+                    var recipePopup = new ImportFromRecipePopup(_importFromRecipeService); 
+                    await MopupService.Instance.PushAsync(recipePopup);
+                }
+            ));
             await MopupService.Instance.PushAsync(popup);
         }
 

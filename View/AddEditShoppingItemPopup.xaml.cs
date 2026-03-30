@@ -8,10 +8,10 @@ namespace Listly.View;
 
 public partial class AddEditShoppingItemPopup : PopupPage
 {
-	public AddEditShoppingItemPopup(IShoppingItemStore shoppingItemStore, IUsersStore usersStore, ICurrentUserService currentUserService, ICategorySuggestionService categorySuggestionService, Guid ShoppingListId, ShoppingItem shoppingItem = null)
+	public AddEditShoppingItemPopup(IShoppingItemStore shoppingItemStore, IUsersStore usersStore, ICurrentUserService currentUserService, ICategorySuggestionService categorySuggestionService, Guid shoppingListId, ShoppingItem shoppingItem = null)
 	{
 		InitializeComponent();
-		BindingContext = new AddEditShoppingItemViewModel(shoppingItemStore, usersStore, currentUserService, categorySuggestionService, shoppingItem, ShoppingListId);
+		BindingContext = new AddEditShoppingItemViewModel(shoppingItemStore, usersStore, currentUserService, categorySuggestionService, shoppingItem, shoppingListId);
     }
 
     private CancellationTokenSource? _glimmerCts;

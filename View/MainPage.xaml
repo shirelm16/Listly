@@ -34,7 +34,7 @@
                         CornerRadius="28"
                         FontSize="24"
                         FontAttributes="Bold"
-                        Command="{Binding AddListCommand}">
+                        Command="{Binding ShowAddMenuCommand}">
                     <Button.Shadow>
                         <Shadow Brush="{StaticResource Primary}" Opacity="0.3" Radius="8" Offset="0,4"/>
                     </Button.Shadow>

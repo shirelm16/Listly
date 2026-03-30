@@ -40,6 +40,7 @@ namespace Listly.Model
         {
             Id = Guid.NewGuid();
             Name = name;
+            Items.CollectionChanged += (s, e) => OnPropertyChanged(nameof(ItemCount));
         }
     }
 

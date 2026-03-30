@@ -20,6 +20,7 @@ namespace Listly.ViewModel
         private readonly ICurrentUserService _currentUserService;
         private IBucketSortService<ShoppingItem> _activeBuckets;
         private readonly ICategorySuggestionService _categorySuggestionService;
+        private readonly IImportFromRecipeService _importFromRecipeService;
         private List<ShoppingItem> _purchasedItems;
         private IDisposable? _itemsListener;
         private bool _isApplyingRemoteUpdate = false;
@@ -28,7 +29,8 @@ namespace Listly.ViewModel
         private ShoppingItemsGroup? _purchasedGroup;
 
         public ShoppingListDetailsViewModel(IShoppingItemStore shoppingItemStore, IUsersStore usersStore, 
-            ICurrentUserService currentUserService, ICategorySuggestionService categorySuggestionService)
+            ICurrentUserService currentUserService, ICategorySuggestionService categorySuggestionService, 
+            IImportFromRecipeService importFromRecipeService)
         {
             _shoppingItemStore = shoppingItemStore;
             _usersStore = usersStore;
@@ -36,6 +38,29 @@ namespace Listly.ViewModel
             _categorySuggestionService = categorySuggestionService;
             _purchasedItems = shoppingList == null ? [] :
                 shoppingList.Items.Where(item => item.IsPurchased).ToList();
+            _importFromRecipeService = importFromRecipeService;
+
+            WeakReferenceMessenger.Default.Register<AddRecipeItemsToListMessage>(this, async (r, m) =>
+            {
+                if (m.Value.ListId != ShoppingList.Id)
+                    return;
+
+                var newItems = m.Value.Items.Select(suggestion =>
+                {
+                    var category = suggestion.SuggestedCategory != null
+                        ? CategoryHelper.FromDisplayNameAndIcon(suggestion.SuggestedCategory)
+                        : Category.Other;
+
+                    return new ShoppingItem(
+                        m.Value.ListId,
+                        suggestion.Name,
+                        suggestion.Quantity,
+                        suggestion.Unit,
+                        new ItemCategory(category));
+                }).ToList();
+
+                await _shoppingItemStore.CreateShoppingItemsBatchAsync(newItems);
+            });
         }
 
         [ObservableProperty]
@@ -72,6 +97,14 @@ namespace Listly.ViewModel
         public string SelectionText => $"{SelectedCount} selected";
 
         public bool IsNormalMode => !IsSelectionMode;
+
+        [RelayCommand]
+        async Task ShowImportFromRecipePopup()
+        {
+            await MopupService.Instance.PopAsync();
+            var popup = new ImportFromRecipePopup(_importFromRecipeService, ShoppingList.Id);
+            await MopupService.Instance.PushAsync(popup);
+        }
 
         [RelayCommand]
         async Task Back()

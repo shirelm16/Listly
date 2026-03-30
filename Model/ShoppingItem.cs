@@ -36,14 +36,14 @@ namespace Listly.Model
 
         public ShoppingItem() { }
 
-        public ShoppingItem(Guid shoppingListId, string name, double? quantity, string? unit, ItemCategory? category, Priority priority, bool hasPriority)
+        public ShoppingItem(Guid shoppingListId, string name, double? quantity = null, string? unit = null, ItemCategory? category = null, Priority priority = Priority.Medium, bool hasPriority = false)
         {
             Id = Guid.NewGuid();
             ShoppingListId = shoppingListId;
             Name = name;
             Quantity = quantity;
             Unit = unit;
-            Category = category;
+            Category = category ?? new ItemCategory();
             Priority = priority;
             HasPriority = hasPriority;
         }
