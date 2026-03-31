@@ -162,8 +162,6 @@ namespace Listly.ViewModel
 
             UpdateItemCollections();
 
-            WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
-
             await MopupService.Instance.PopAsync();
         }
 
@@ -216,7 +214,6 @@ namespace Listly.ViewModel
             ShoppingList.Items.Remove(shoppingItem);
             await _shoppingItemStore.DeleteShoppingItemAsync(shoppingItem.ShoppingListId, shoppingItem.Id);
             UpdateItemCollections();
-            WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
         }
 
         [RelayCommand]
@@ -337,8 +334,6 @@ namespace Listly.ViewModel
                 await _shoppingItemStore.DeleteShoppingItemAsync(item.ShoppingListId, item.Id);
             }
 
-            WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
-
             // Exit selection mode
             IsSelectionMode = false;
             UpdateItemCollections();
@@ -404,8 +399,6 @@ namespace Listly.ViewModel
 
             var item = sender as ShoppingItem;
             await _shoppingItemStore.UpdateShoppingItemAsync(item, e.PropertyName);
-
-            WeakReferenceMessenger.Default.Send(new ShoppingListUpdatedMessage(ShoppingList));
         }
 
         private async void ShoppingItem_OnItemPurchased(ShoppingItem item)

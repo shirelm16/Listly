@@ -70,12 +70,15 @@ namespace Listly.Store
 
         public async Task CreateShoppingItemAsync(ShoppingItem item)
         {
-            var itemsCollection = _collection
+            var itemRef = _collection
                 .GetDocument(item.ShoppingListId.ToString())
-                .GetCollection("items");
+                .GetCollection("items")
+                .GetDocument(item.Id.ToString());
 
-            var doc = ShoppingItemDocument.FromShoppingItem(item);
-            await itemsCollection.GetDocument(item.Id.ToString()).SetDataAsync(doc);
+            var batch = CrossFirebaseFirestore.Current.CreateBatch();
+            batch.SetData(itemRef, ShoppingItemDocument.FromShoppingItem(item));
+            StampMetadata(batch, item.ShoppingListId);
+            await batch.CommitAsync();
         }
 
         public async Task DeleteListAsync(Guid id)
@@ -91,7 +94,10 @@ namespace Listly.Store
                 .GetCollection("items")
                 .GetDocument(itemId.ToString());
 
-            await itemRef.DeleteDocumentAsync();
+            var batch = CrossFirebaseFirestore.Current.CreateBatch();
+            batch.DeleteDocument(itemRef);
+            StampMetadata(batch, shoppingListId);
+            await batch.CommitAsync();
         }
 
         public async Task<List<ShoppingList>> GetAllShoppingListsAsync()
@@ -132,6 +138,7 @@ namespace Listly.Store
                 throw new InvalidOperationException("User must be authenticated");
 
             shoppingList.LastModifiedUser = user.Uid;
+            shoppingList.LastModified = DateTime.UtcNow;
             var doc = ShoppingListDocument.FromShoppingList(shoppingList);
             var docRef = _collection.GetDocument(shoppingList.Id.ToString());
 
@@ -146,11 +153,15 @@ namespace Listly.Store
                 .GetDocument(shoppingItem.Id.ToString());
 
             var doc = ShoppingItemDocument.FromShoppingItem(shoppingItem);
+            var batch = CrossFirebaseFirestore.Current.CreateBatch();
 
             if (changedProperty != null && ItemFieldMap.TryGetValue(changedProperty, out var firestoreField))
-                await itemRef.SetDataAsync(doc, SetOptions.MergeFields(firestoreField));
+                batch.SetData(itemRef, doc, SetOptions.MergeFields(firestoreField));
             else
-                await itemRef.SetDataAsync(doc, SetOptions.Merge());
+                batch.SetData(itemRef, doc, SetOptions.Merge());
+
+            StampMetadata(batch, shoppingItem.ShoppingListId);
+            await batch.CommitAsync();
         }
 
         public async Task<ShoppingList> GetSharedListByShareIdAsync(string shareId)
@@ -198,6 +209,16 @@ namespace Listly.Store
             return shoppingList;
         }
 
+        private void StampMetadata(IWriteBatch batch, Guid shoppingListId)
+        {
+            var listRef = _collection.GetDocument(shoppingListId.ToString());
+            batch.UpdateData(listRef, new Dictionary<object, object>
+            {
+                ["lastModified"] = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds(),
+                ["lastModifiedUser"] = _auth.CurrentUser.Uid
+            });
+        }
+
         public IDisposable ListenToItems(Guid listId, Action<IEnumerable<ShoppingItem>> onChanged)
         {
             return _collection
@@ -214,8 +235,9 @@ namespace Listly.Store
 
         public async Task CreateShoppingItemsBatchAsync(IEnumerable<ShoppingItem> items)
         {
+            var itemsList = items.ToList();
             var batch = CrossFirebaseFirestore.Current.CreateBatch();
-            foreach (var item in items)
+            foreach (var item in itemsList)
             {
                 var doc = _collection
                     .GetDocument(item.ShoppingListId.ToString())
@@ -223,6 +245,8 @@ namespace Listly.Store
                     .GetDocument(item.Id.ToString());
                 batch.SetData(doc, ShoppingItemDocument.FromShoppingItem(item));
             }
+            if (itemsList.Count > 0)
+                StampMetadata(batch, itemsList[0].ShoppingListId);
             await batch.CommitAsync();
         }
     }

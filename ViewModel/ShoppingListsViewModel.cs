@@ -33,7 +33,6 @@ namespace Listly.ViewModel
             WeakReferenceMessenger.Default.Register<ShoppingListUpdatedMessage>(this, async (r, m) =>
             {
                 var list = m.Value;
-                list.LastModified = DateTime.UtcNow;
                 await _shoppingListStore.UpdateShoppingListAsync(list);
             });
 
