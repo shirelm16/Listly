@@ -251,6 +251,7 @@
         <ResourceDictionary>
             <converters:EnumEqualsConverter x:Key="EnumEqualsConverter"/>
             <converters:CategoryDisplayToIconConverter x:Key="CategoryDisplayToIconConverter"/>
+            <converters:NullableDoubleConverter x:Key="NullableDoubleConverter"/>
         </ResourceDictionary>
     </mopups:PopupPage.Resources>
 </mopups:PopupPage>
